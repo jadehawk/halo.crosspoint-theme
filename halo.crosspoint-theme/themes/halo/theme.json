@@ -1,0 +1,390 @@
+{
+  "schema_version": 1,
+  "base": "classic",
+  "reference": {
+    "width": 528,
+    "height": 792,
+    "adapt": "center-crop"
+  },
+  "metrics": {
+    "batteryWidth": 16,
+    "batteryHeight": 12,
+    "topPadding": 0,
+    "batteryBarHeight": 20,
+    "headerHeight": 62,
+    "verticalSpacing": 12,
+    "previewPadding": 12,
+    "previewHeightPercent": 30,
+    "contentSidePadding": 16,
+    "listRowHeight": 42,
+    "listWithSubtitleRowHeight": 62,
+    "listRowGap": 0,
+    "listRowRadius": 0,
+    "listInset": 12,
+    "listSidePadding": 12,
+    "listSelectionStyle": 0,
+    "listScrollWidth": 4,
+    "listScrollSide": 0,
+    "listTitleBold": false,
+    "listSeparators": true,
+    "headerSidePadding": 18,
+    "headerUnderlineSize": 2,
+    "headerTitleAlign": 0,
+    "headerBatterySide": 0,
+    "headerShowsClock": false,
+    "headerClockCentered": false,
+    "menuRowHeight": 46,
+    "menuSpacing": 0,
+    "tabSpacing": 8,
+    "tabBarHeight": 48,
+    "coverGridTabBarHeight": 72,
+    "tabPillFullSlot": true,
+    "scrollBarWidth": 4,
+    "scrollBarRightOffset": 5,
+    "homeTopPadding": 56,
+    "homeCoverHeight": 226,
+    "homeCoverTileHeight": 400,
+    "homeRecentBooksCount": 1,
+    "homeContinueReadingInMenu": false,
+    "homeMenuTopOffset": 8,
+    "buttonHintsHeight": 40,
+    "sideButtonHintsWidth": 30,
+    "progressBarHeight": 16,
+    "progressBarMarginTop": 1,
+    "statusBarHorizontalMargin": 5,
+    "statusBarVerticalMargin": 19,
+    "keyboardKeyHeight": 56,
+    "keyboardKeySpacing": 0,
+    "keyboardCenteredText": false,
+    "keyboardVerticalOffset": -7,
+    "keyboardTextFieldWidthPercent": 85,
+    "keyboardWidthPercent": 94,
+    "popupTopOffsetRatio": 0.165,
+    "popupMarginX": 16,
+    "popupMarginY": 12,
+    "popupFrameThickness": 3,
+    "popupCornerRadius": 0,
+    "popupTextBold": true,
+    "popupTextInverted": true,
+    "popupTextBaselineOffsetY": -2,
+    "popupProgressBarHeight": 4,
+    "popupProgressDrawOutline": true,
+    "popupProgressClampPercent": true,
+    "popupProgressFillInverted": true,
+    "popupProgressOutlineInverted": true,
+    "optionPopupItemSpacing": 6,
+    "optionPopupInnerPadding": 18,
+    "optionPopupSelectionVPadding": 8,
+    "optionPopupDialogSideMargin": 20,
+    "textFieldHorizontalPadding": 6,
+    "textFieldNormalThickness": 2,
+    "textFieldCursorThickness": 3,
+    "textFieldLineEndOffset": 0,
+    "controlRadius": 0,
+    "sheetRadius": 0,
+    "capsuleRadius": 0
+  },
+  "styles": {
+    "header_background": "black",
+    "header_foreground": "white",
+    "selection": "invert",
+    "row_separators": true,
+    "corners": "chamfer",
+    "chamfer_cut": 6,
+    "settings_navigation": "list",
+    "chamfer_card_cut": 12,
+    "chamfer_row_cut": 8,
+    "chamfer_hint_cut": 6
+  },
+  "assets": {
+    "header_emblem": "themes/halo/assets/header-emblem.cpb",
+    "home_hero": "themes/halo/assets/home-hero.cpb",
+    "boot_art": "themes/halo/assets/emblem-large.cpb",
+    "sleep_art": [
+      "themes/halo/assets/sleep-art-1.cpb",
+      "themes/halo/assets/sleep-art-2.cpb",
+      "themes/halo/assets/sleep-art-3.cpb"
+    ],
+    "sleep_emblem": "themes/halo/assets/sleep-emblem.cpb"
+  },
+  "regions": {
+    "header": [
+      {
+        "op": "fill",
+        "color": "black"
+      },
+      {
+        "op": "rect",
+        "color": "white",
+        "anchor": "bottom",
+        "width": 0,
+        "height": 10
+      },
+      {
+        "op": "rect",
+        "color": "black",
+        "anchor": "bottom",
+        "offset": [
+          0,
+          -5
+        ],
+        "width": 0,
+        "height": 2
+      },
+      {
+        "op": "rect",
+        "color": "black",
+        "anchor": "bottom-left",
+        "offset": [
+          14,
+          -3
+        ],
+        "width": 64,
+        "height": 4
+      },
+      {
+        "op": "bitmap",
+        "asset": "header_emblem",
+        "color": "white",
+        "paint": "ink-only",
+        "anchor": "left",
+        "offset": [
+          14,
+          -5
+        ],
+        "max_width": 32,
+        "max_height": 32
+      },
+      {
+        "op": "rect",
+        "color": "white",
+        "anchor": "left",
+        "offset": [
+          56,
+          -5
+        ],
+        "width": 1,
+        "height": 24
+      },
+      {
+        "op": "text",
+        "source": "screen_title",
+        "color": "white",
+        "font": "ui_bold",
+        "anchor": "left",
+        "offset": [
+          67,
+          -5
+        ],
+        "tracking": 2,
+        "max_width": 295
+      }
+    ],
+    "home": [
+      {
+        "op": "bitmap",
+        "asset": "home_hero",
+        "fit": "native",
+        "anchor": "top"
+      },
+      {
+        "op": "text",
+        "source": "date",
+        "font": "display",
+        "color": "white",
+        "plate": "chamfer-black",
+        "anchor": "top-left",
+        "offset": [
+          24,
+          18
+        ],
+        "tracking": 2
+      },
+      {
+        "op": "text",
+        "value": "FINISH THE FIGHT.",
+        "font": "ui_bold",
+        "color": "white",
+        "plate": "chamfer-black",
+        "anchor": "top-left",
+        "offset": [
+          24,
+          78
+        ],
+        "tracking": 2
+      },
+      {
+        "op": "book-card",
+        "variant": "outlined",
+        "badge_asset": "header_emblem",
+        "anchor": "bottom",
+        "offset": [
+          0,
+          -14
+        ]
+      }
+    ],
+    "boot": [
+      {
+        "op": "fill",
+        "color": "black"
+      },
+      {
+        "op": "bitmap",
+        "asset": "boot_art",
+        "fit": "native",
+        "paint": "ink-only",
+        "color": "white",
+        "anchor": "center",
+        "offset": [
+          0,
+          -90
+        ],
+        "max_width": 148,
+        "max_height": 220
+      },
+      {
+        "op": "text",
+        "value": "UNSC",
+        "font": "display",
+        "color": "white",
+        "anchor": "center",
+        "offset": [
+          0,
+          62
+        ],
+        "tracking": 5
+      },
+      {
+        "op": "text",
+        "value": "PERSONAL ARCHIVE",
+        "font": "ui_bold",
+        "color": "white",
+        "anchor": "center",
+        "offset": [
+          0,
+          92
+        ],
+        "tracking": 2
+      },
+      {
+        "op": "text",
+        "source": "device_name",
+        "font": "ui_small",
+        "color": "white",
+        "anchor": "center",
+        "offset": [
+          0,
+          116
+        ]
+      },
+      {
+        "op": "progress",
+        "source": "loading_percent",
+        "anchor": "bottom",
+        "color": "white",
+        "offset": [
+          0,
+          -150
+        ],
+        "thickness": 12
+      }
+    ],
+    "sleep": [
+      {
+        "op": "fill",
+        "color": "white"
+      },
+      {
+        "op": "bitmap",
+        "asset": "sleep_art",
+        "fit": "native",
+        "anchor": "center"
+      },
+      {
+        "op": "text",
+        "value": "FINISH THE FIGHT.",
+        "font": "display",
+        "color": "white",
+        "plate": "chamfer-black",
+        "anchor": "top-left",
+        "offset": [
+          28,
+          80
+        ],
+        "tracking": 2
+      },
+      {
+        "op": "bitmap",
+        "asset": "header_emblem",
+        "paint": "ink-only",
+        "color": "white",
+        "anchor": "top-left",
+        "offset": [
+          28,
+          40
+        ],
+        "max_width": 32,
+        "max_height": 32
+      },
+      {
+        "op": "text",
+        "value": "UNSC",
+        "color": "white",
+        "font": "ui_bold",
+        "plate": "chamfer-black",
+        "anchor": "top-left",
+        "offset": [
+          75,
+          44
+        ],
+        "tracking": 2
+      },
+      {
+        "op": "bitmap",
+        "asset": "sleep_emblem",
+        "paint": "ink-only",
+        "fit": "native",
+        "color": "white",
+        "anchor": "bottom",
+        "offset": [
+          0,
+          -70
+        ],
+        "max_width": 200,
+        "max_height": 96
+      },
+      {
+        "op": "text",
+        "value": "CROSSPOINT  //",
+        "color": "white",
+        "font": "ui_small",
+        "anchor": "bottom-left",
+        "offset": [
+          24,
+          -30
+        ],
+        "tracking": 1
+      },
+      {
+        "op": "text",
+        "source": "device_name",
+        "color": "white",
+        "font": "ui_small",
+        "anchor": "bottom-right",
+        "offset": [
+          -24,
+          -30
+        ],
+        "tracking": 1
+      }
+    ],
+    "hints": []
+  },
+  "fonts": {
+    "ui_small": "themes/halo/fonts/ui-small.cpfont",
+    "ui_regular": "themes/halo/fonts/ui-regular.cpfont",
+    "ui_large": "themes/halo/fonts/ui-large.cpfont",
+    "display": "themes/halo/fonts/display.cpfont"
+  }
+}

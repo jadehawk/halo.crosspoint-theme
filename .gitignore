@@ -1,0 +1,28 @@
+# Local-only files: never stage or publish these with the theme repository.
+/ROADMAP.md
+**/AGENTS.md
+**/Agents.md
+
+# ThinkForge workspace metadata, indexes, and handoff artifacts.
+**/.codegraph/
+**/.codegraph-*/
+**/.thinkforge/
+**/.thinkforge-*/
+**/.ai-bridge/
+**/.ai-bridge-*/
+**/thinkforge-session*/
+
+# Generated archives, previews, imported artwork, and local logs.
+/dist/
+/previews/
+*.local*
+*.log
+.idea/
+.vscode/
+.DS_Store
+
+# Python tooling caches/environments.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/

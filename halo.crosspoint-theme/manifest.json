@@ -1,0 +1,40 @@
+{
+  "kind": "theme-pack",
+  "name": "halo",
+  "title": "HALO Theme Collection",
+  "description": "SD-loaded HALO-inspired CrossPoint UI, with original artwork, Chakra Petch fonts, and three rotating sleep scenes.",
+  "author": "Jadehawk",
+  "version": "0.1.0",
+  "license": "Unofficial HALO fan theme; third-party art and font rights remain with original owners. See attribution.",
+  "themes": [
+    {
+      "id": "halo",
+      "title": "HALO",
+      "path": "themes/halo/theme.json",
+      "requires": [
+        "theme.sd.v1",
+        "theme.metrics.v1",
+        "theme.images.v1",
+        "theme.composition.v1",
+        "theme.fonts.v1",
+        "theme.settings-navigation.v1"
+      ]
+    }
+  ],
+  "files": [
+    "manifest.json",
+    "README.md",
+    "themes/halo/theme.json",
+    "themes/halo/assets/home-hero.cpb",
+    "themes/halo/assets/header-emblem.cpb",
+    "themes/halo/assets/emblem-large.cpb",
+    "themes/halo/assets/sleep-art-1.cpb",
+    "themes/halo/assets/sleep-art-2.cpb",
+    "themes/halo/assets/sleep-art-3.cpb",
+    "themes/halo/assets/sleep-emblem.cpb",
+    "themes/halo/fonts/ui-small.cpfont",
+    "themes/halo/fonts/ui-regular.cpfont",
+    "themes/halo/fonts/ui-large.cpfont",
+    "themes/halo/fonts/display.cpfont"
+  ]
+}

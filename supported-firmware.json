@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "purpose": "Informational community list. Do not use firmware names as a runtime capability allow-list.",
+  "updated": "2026-10-21",
+  "runtime_capabilities_for_catalog_visibility": [
+    "theme.sd.v1",
+    "theme.metrics.v1"
+  ],
+  "known_implementations": [
+    {
+      "name": "Razor-Crest",
+      "repository": "https://github.com/jadehawk/Razor-Crest",
+      "status": "development",
+      "verified_hardware": ["X3"],
+      "theme_capabilities_implemented": [
+        "theme.sd.v1",
+        "theme.metrics.v1",
+        "theme.images.v1",
+        "theme.composition.v1",
+        "theme.fonts.v1",
+        "theme.settings-navigation.v1"
+      ],
+      "notes": "SD theme worktree; feature not necessarily contained in publicly tagged Razor-Crest firmware releases."
+    }
+  ],
+  "not_yet_supported": [
+    {
+      "name": "Upstream CrossPoint",
+      "repository": "https://github.com/crosspoint-reader/crosspoint-reader",
+      "notes": "Current examined 2.0.0.rc does not load external SD theme collections."
+    }
+  ],
+  "capability_advertisement": "Not yet exposed as a stable public firmware or HTTP endpoint.",
+  "theme_catalog_installer_available": false
+}

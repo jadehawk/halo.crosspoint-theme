@@ -1,0 +1,185 @@
+# CrossPoint SD Theme Contract — v1 (experimental)
+
+This document describes the **currently implemented SD-theme format** used by the Razor-Crest development firmware and the HALO theme pack. It is a **provisional community contract, not an upstream CrossPoint standard**. Other firmware implementations may adopt it by exposing the same capabilities and semantics.
+
+A **theme** describes appearance. It does not supply executable code, register button actions, intercept input, or replace core reading/navigation behavior. The firmware renders the scene and owns all resource lifetimes and fallbacks.
+
+## Distinguish theme collections from plugins
+
+| Property | SD theme collection | CrossPoint plugin |
+|---|---|---|
+| Folder | `/.crosspoint/themes/<id>.crosspoint-theme/` | `/.crosspoint/plugins/<id>/` (or supported legacy roots) |
+| Manifest | `kind: "theme-pack"` | Plugin manifest |
+| UI | Declarative scene + metrics + optional bitmap/font assets | `device.json` and/or `plugin.js` |
+| Actions | **Not supported** | May register supported plugin actions |
+| Compatibility | `themes[].requires` capability identifiers | Plugin API / capability requirements |
+| Installer | Manual folder copy today | Plugin Hub or manual installation |
+
+**Do not invent a `device.json` or `plugin.js` for a theme.**
+
+## Installable directory convention
+
+Use one public GitHub repository per collection, containing **one direct-child** `<collection-id>.crosspoint-theme/` directory. This mirrors the plugin layout but uses a different folder suffix.
+
+```text
+my-themes.crosspoint-theme/                      ← GitHub repository
+└── my-themes.crosspoint-theme/                  ← installable payload
+    ├── manifest.json
+    ├── README.md
+    ├── themes/
+    │   └── my-style/
+    │       ├── theme.json
+    │       ├── assets/
+    │       │   └── sleep-1.cpb
+    │       └── fonts/                            ← optional v4 CPFONT
+    └── shared/assets/                            ← optional
+```
+
+The collection ID, root folder name, manifest `name`, and theme IDs are stable identity keys. Firmware selects themes as `<collection-id>/<theme-id>`; renaming either is a breaking change. Each collection can contain multiple themes with distinct `requires`.
+
+## Manifest
+
+```json
+{
+  "kind": "theme-pack",
+  "name": "my-themes",
+  "title": "My Theme Collection",
+  "description": "A small example collection",
+  "author": "Theme Author",
+  "version": "0.1.0",
+  "license": "See included project attribution and license",
+  "themes": [
+    {
+      "id": "my-style",
+      "title": "My Style",
+      "path": "themes/my-style/theme.json",
+      "requires": [
+        "theme.sd.v1",
+        "theme.metrics.v1",
+        "theme.images.v1",
+        "theme.composition.v1"
+      ]
+    }
+  ],
+  "files": [
+    "manifest.json",
+    "README.md",
+    "themes/my-style/theme.json",
+    "themes/my-style/assets/sleep-1.cpb"
+  ]
+}
+```
+
+The **exact manifest fields** are `kind`, `name`, `title`, `description`, `author`, `version`, `license`, `themes`, `files`. Unknown keys are rejected by the current host validator. Versions use `MAJOR.MINOR.PATCH`, without a `v` in the manifest. A release tag may use an initial `v`. Every runtime file must be listed, including `manifest.json` and the package README. All paths are relative to the payload root, never absolute or parent-traversing; symlinks are forbidden. The installer must not copy developer files or generated previews.
+
+## Firmware capabilities currently recognized
+
+| Capability | What it enables |
+|---|---|
+| `theme.sd.v1` | SD theme collection discovery, validation, selection and fallback |
+| `theme.metrics.v1` | Bounded `ThemeMetrics` overrides |
+| `theme.images.v1` | Validated, streamed monochrome CPB assets |
+| `theme.composition.v1` | Declarative named UI rendering regions and operations |
+| `theme.fonts.v1` | Four optional SD UI font roles with stock-font restoration |
+| `theme.settings-navigation.v1` | Theme-preferred Settings list/tab presentation, subject to manual override |
+
+These strings are recognized by the experimental **ThemePackRegistry**. They are **not yet a publicly exposed HTTP capability endpoint** or an officially stable CrossPoint API. Catalogs should only claim runtime support after firmware advertises these values externally. Do not use the string `Razor-Crest` or version `2.0.0` as a substitute for capability negotiation.
+
+## Theme definition
+
+Each `themes/<id>/theme.json` has exact required fields:
+`schema_version`, `base`, `reference`, `metrics`, `styles`, `assets`, `regions`; optional `fonts`.
+
+```json
+{
+  "schema_version": 1,
+  "base": "classic",
+  "reference": { "width": 528, "height": 792, "adapt": "scale-to-fit" },
+  "metrics": {},
+  "styles": {
+    "header_background": "white",
+    "header_foreground": "black",
+    "selection": "invert",
+    "row_separators": false,
+    "corners": "square",
+    "chamfer_cut": 0
+  },
+  "assets": {
+    "sleep_art": ["themes/my-style/assets/sleep-1.cpb"]
+  },
+  "regions": {
+    "sleep": [
+      { "op": "fill", "color": "white" },
+      { "op": "bitmap", "asset": "sleep_art", "anchor": "center", "fit": "native" }
+    ]
+  }
+}
+```
+
+A wallpaper-only theme can use empty `metrics` and omit `header`, `home`, and `boot` regions. That retains **Classic-based default UI appearance**, not the previous active theme's appearance.
+
+### Reference and adaptation
+
+The design reference is a bounded width/height (X3 reference is 528×792). The implemented `adapt` enum is `center-crop` or `scale-to-fit`. Confirm rendering on each target panel; a reference size does not guarantee pixel-perfect conversion on every device.
+
+### Metrics and styling
+
+`metrics` permits only known `ThemeMetrics` names, with bounded numeric and boolean values; the [validator](../tools/theme_tool.py) contains the current exact allow-list. Absent metrics take Classic defaults.
+
+Required `styles`: `header_background` (`black|white`), `header_foreground` (`black|white`), `selection` (`invert|underline|pill|triangle`), `row_separators` (boolean), `corners` (`square|rounded|chamfer`), `chamfer_cut` (0–32).
+
+Optional:
+- `chamfer_card_cut`, `chamfer_row_cut`, `chamfer_hint_cut` (0–32): book-card, selected-menu, and button-hint corner cuts; inherit `chamfer_cut` when omitted.
+- `settings_navigation: "list" | "tabs"`: a preference only, and requires `theme.settings-navigation.v1`. If no user override exists, the firmware follows the theme; otherwise the user's **List/Tabs** choice wins. If absent, List is the fallback. Tabs presents Display, Reader, Controls, System, with Library/Connectivity expandable under System.
+
+### Assets and fonts
+
+Artwork is referenced by named roles: `header_emblem`, `home_hero`, `boot_art`, `sleep_art`, `sleep_emblem`. A role points to `themes/<id>/assets/<filename>.cpb` or `shared/assets/<filename>.cpb`; assets must be in `files`. Only `sleep_art` may be a list (currently 1–8 images). The renderer chooses one at random per **regular sleep rendering**; repeats can occur.
+
+When a theme needs custom UI fonts, the optional `fonts` object declares **all four roles**: `ui_small`, `ui_regular`, `ui_large`, `display`, each a listed `themes/<id>/fonts/*.cpfont` v4 file. `theme.fonts.v1` is required. Missing/bad font data must not change book-reading fonts or prevent returning to stock fonts.
+
+### Declarative scene regions and operations
+
+Regions: `header`, `home`, `boot`, `sleep`, `hints`. Current operations are `fill`, `rect`, `bitmap`, `text`, `line`, `book-card`, and `progress`. Ops accept only documented fields; the [host validator](../tools/theme_tool.py) is the detailed operation-property reference.
+
+- `fill`: fill region white or black.
+- `rect`: anchored bounded solid rectangle (width/height 0 fills that dimension).
+- `bitmap`: asset role with fit `native|contain|cover` and optional `ink-only` masking.
+- `text`: a literal `value` or firmware-owned `source`, font role, spacing, and optional chamfered dark/light plate.
+- `line`: horizontal or vertical rule.
+- `book-card`: firmware-owned Continue Reading information; may reference an optional emblem.
+- `progress`: bounded firmware-provided progress value.
+
+Text sources are restricted to `screen_title`, `date`, `device_name`, `book_title`, `book_author`, `progress_percent`, `tagline`, `loading_percent`. No arbitrary data lookup, shell, JavaScript, plugin callbacks, gesture bindings, or network access.
+
+Scene operations are clipped to their region and preserve firmware-owned hitboxes. If an unsupported scene/capability fails validation, the firmware should reject it and safely fall back to Classic.
+
+## Binary formats and bounds
+
+**CPB v1**: 20-byte little-endian header, `CPTB` magic, version 1, flags 1, width/height, stride `ceil(width/8)`, payload length and CRC32, followed by 1-bit MSB-first scanlines (1=ink). The host tool converts RGB input to monochrome and validates the CRC.
+
+**CPFONTS**: existing CrossPoint v4, 1-bit glyphs with bounded style tables and bitmap sections (max 200 KiB per file). These are UI-font resources, not book-font selections.
+
+Current host limits: 1–16 themes/collection, up to 64 files, ≤2 MiB payload, ≤1024-pixel dimensions, ≤128 KiB per CPB bitmap, ≤8 images per sleep gallery, ≤16 operations per region and ≤48 per theme. Current X3 firmware registry also limits discovery to 8 packs, 16 choices, 64 files/pack and 12 KiB per JSON file. Limits may change as the contract evolves; loaders must enforce their own constraints.
+
+## Sleep-screen priority and known limitations
+
+- **Dark/Light** + a selected theme sleep scene: draw the theme's sleep gallery with overlays.
+- **Dark/Light** without theme scene: built-in white/black CrossPoint logo screen.
+- **Custom**: use `/.sleep` and `/sleep` regular wallpaper pool.
+- **Cover/transparent modes**: retain their own firmware selection behavior.
+- **Timed sleep-screen refresh**: still uses the ordinary SD wallpaper pool and **does not** rotate a theme's gallery during timed wakes.
+
+A theme cannot yet pick a named `/.sleep` subcollection, invoke a plugin, replace reader functionality, or manage its own install/update through the current Plugin Hub.
+
+## Author workflow and distribution
+
+```powershell
+python tools/theme_tool.py validate --root .
+python -m unittest discover -s tests -q
+python tools/theme_tool.py pack --root . --output dist/my-themes-0.1.0.crosspoint-theme.zip
+```
+
+A publisher should use the GitHub topic **`crosspoint-theme`**, maintain a Release matching manifest `version`, and put only payload files in the ZIP. **This is the planned catalog convention**—not an assertion that current Plugin Hub can discover themes.
+
+See [author instructions](CREATE_THEMES.md), [wallpaper collections](WALLPAPER_PACKS.md), [firmware compatibility](SUPPORTED_FIRMWARE.md), and [catalog filtering](CATALOG_INTEGRATION.md).

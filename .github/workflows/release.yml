@@ -1,0 +1,39 @@
+name: Release Theme Collection
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate version and manifest
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          version = json.load(open("halo.crosspoint-theme/manifest.json", encoding="utf-8"))["version"]
+          tag = os.environ["GITHUB_REF_NAME"]
+          assert tag in (version, "v" + version), "Release tag must match manifest version"
+          PY
+          python tools/theme_tool.py validate --root .
+          python -m unittest discover -s tests -q
+      - name: Build deterministic install-only package
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          python tools/theme_tool.py pack --root . --output "dist/halo-${VERSION}.crosspoint-theme.zip"
+      - name: Publish versioned release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          gh release create "$GITHUB_REF_NAME" "dist/halo-${VERSION}.crosspoint-theme.zip" --title "HALO Theme Collection" --notes-file CHANGELOG.md --verify-tag

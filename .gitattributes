@@ -1,0 +1,10 @@
+# Stable line endings and binary theme resources
+*.py text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.cpb binary
+*.cpfont binary
+*.png binary
+*.zip binary

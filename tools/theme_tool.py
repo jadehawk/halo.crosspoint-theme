@@ -259,20 +259,58 @@ def verify_cpfont(file: Path) -> None:
     data = file.read_bytes()
     require(64 <= len(data) <= 200 * 1024, "invalid cpfont size")
     require(data[:8] == bytes((67, 80, 70, 79, 78, 84, 0, 0)), "invalid cpfont signature")
-    require(struct.unpack_from("<H", data, 8)[0] == 4 and not (data[10] & 1),
-            "font must be monochrome cpfont v4")
+    require(struct.unpack_from("<H", data, 8)[0] == 4 and
+            struct.unpack_from("<H", data, 10)[0] == 0,
+            "font must be monochrome cpfont v4 without unsupported flags")
     count = data[12]
     require(1 <= count <= 4 and len(data) >= 32 + 32 * count, "invalid cpfont style count")
     toc = struct.Struct("<B3xIIBhhHHBBBI4x")
+    interval_record = struct.Struct("<III")
+    glyph_record = struct.Struct("<BBHhhH2xI")
+    section_start = 32 + 32 * count
     offsets = []
+    roles = set()
+    metadata = []
     for i in range(count):
         role, intervals, glyphs, height, asc, desc, kl, kr, cl, cr, lig, offset = toc.unpack_from(data, 32 + 32 * i)
-        require(role <= 3 and intervals < 4096 and glyphs < 65536 and height < 256,
+        require(role <= 3 and role not in roles, "duplicate/invalid cpfont style role")
+        roles.add(role)
+        require(0 < intervals <= 4096 and 0 < glyphs <= 65536 and 0 < height < 256,
                 "invalid cpfont style metadata")
         require(kl == kr == cl == cr == lig == 0, "unsupported cpfont kerning/ligatures")
-        require(32 + 32 * count <= offset < len(data), "invalid cpfont section offset")
+        require(section_start <= offset < len(data), "invalid cpfont section offset")
         offsets.append(offset)
+        metadata.append((intervals, glyphs))
+    require(0 in roles, "cpfont must include regular style (0)")
     require(offsets == sorted(set(offsets)), "invalid cpfont section ordering")
+
+    for i, (offset, (intervals, glyphs)) in enumerate(zip(offsets, metadata)):
+        end = offsets[i + 1] if i + 1 < count else len(data)
+        glyph_table = offset + intervals * interval_record.size
+        bitmap_start = glyph_table + glyphs * glyph_record.size
+        require(bitmap_start <= end, "cpfont interval/glyph table exceeds style section")
+        last_codepoint = -1
+        expected_index = 0
+        for j in range(intervals):
+            first, last, index = interval_record.unpack_from(data, offset + j * interval_record.size)
+            require(first <= last <= 0x10FFFF and first > last_codepoint,
+                    "invalid/overlapping cpfont Unicode intervals")
+            span = last - first + 1
+            require(index == expected_index and expected_index + span <= glyphs,
+                    "invalid cpfont glyph index/interval span")
+            expected_index += span
+            last_codepoint = last
+        require(expected_index == glyphs, "cpfont intervals do not cover glyph count")
+
+        bitmap_length = end - bitmap_start
+        for j in range(glyphs):
+            width, height, _advance, _left, _top, length, data_offset = glyph_record.unpack_from(
+                data, glyph_table + j * glyph_record.size)
+            packed = (width * height + 7) // 8
+            require(length == packed, "invalid cpfont glyph bitmap length")
+            require(data_offset <= bitmap_length and length <= bitmap_length - data_offset,
+                    "cpfont glyph bitmap extends outside style section")
+
 
 
 def resolve_theme_root(path: Path) -> Path:
@@ -405,9 +443,17 @@ def validate(root: Path) -> dict:
                         "invalid chamfer size for " + cut)
         fonts = spec.get("fonts", {})
         require(isinstance(fonts, dict) and
-                (not fonts or set(fonts) == {"ui_small", "ui_regular", "ui_large", "display"}),
+                (not fonts or set(fonts) == {"ui"} or
+                 set(fonts) == {"ui_small", "ui_regular", "ui_large", "display"}),
                 "invalid font role set")
-        for role, path in fonts.items():
+        if isinstance(fonts.get("ui"), dict):
+            variants = fonts["ui"]
+            require(set(variants) == {"small", "regular", "large", "display"},
+                    "invalid UI font family variants")
+            font_files = variants.values()
+        else:
+            font_files = fonts.values()
+        for path in font_files:
             require(isinstance(path, str) and
                     path.startswith("themes/" + tid + "/fonts/") and path.endswith(".cpfont"),
                     "invalid font path")
@@ -418,6 +464,20 @@ def validate(root: Path) -> dict:
             verify_cpfont(file)
             resource_paths.add(path)
             font_paths.add(path)
+        if isinstance(fonts.get("ui"), dict):
+            ordered_paths = [fonts["ui"][role] for role in ("small", "regular", "large", "display")]
+            require(len(set(ordered_paths)) == 4, "font family variants must use four distinct files")
+            heights = []
+            for path in ordered_paths:
+                blob = located_file(root, path).read_bytes()
+                # verify_cpfont() above guarantees a regular style (role 0).
+                count = blob[12]
+                regular = next(i for i in range(count) if blob[32 + i * 32] == 0)
+                heights.append(blob[32 + regular * 32 + 12])
+            require(all(a < b for a, b in zip(heights, heights[1:])),
+                    "four-size font family must increase from small to display")
+        require((set(fonts) == {"ui"}) == ("theme.font-family.v1" in entry["requires"]),
+                "font family capability must match UI family declaration")
         require(bool(fonts) == ("theme.fonts.v1" in entry["requires"]),
                 "font capability must match theme font payload")
         assets = spec["assets"]

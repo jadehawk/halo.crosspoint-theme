@@ -55,7 +55,7 @@ python tools/theme_tool.py pack --root . --output dist/my-theme-0.1.0.crosspoint
 python tools/theme_tool.py preview --input "my-theme.crosspoint-theme/themes/my-theme/assets/cover.cpb" --output dist/preview.png
 ```
 
-The ZIP contains only the declared payload folder, not repo development files. The packer uses deterministic timestamps/order.
+The ZIP contains only the declared payload folder, not repo development files. The packer uses deterministic timestamps/order. **No public release or catalog submission is permitted without all checks passing.** For themes with external UI fonts, read the mandatory [font validation and publication gate](THEME_CONTRACT.md#required-font-checks-before-publication): every `.cpfont` must be the supported v4 monochrome format with structurally valid interval, glyph, and bitmap sections. Four-size UI families require distinct files with increasing line heights. This repository's GitHub workflow validates PRs, `main`, and release tags, and only produces a release artifact after validation.
 
 ## 6. Hardware test and publish
 

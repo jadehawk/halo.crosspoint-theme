@@ -73,6 +73,46 @@ class PackageTests(unittest.TestCase):
         self.assertIn("theme.sd.v1", needed)
         self.assertIn("theme.fonts.v1", needed)
 
+    def test_shared_ui_role_is_global_and_only_file_is_packaged(self):
+        manifest = tool.read_json(PAYLOAD / "manifest.json")
+        scene = tool.read_json(PAYLOAD / "themes/halo/theme.json")
+        self.assertEqual(set(scene["fonts"]["ui"]), {"small", "regular", "large", "display"})
+        self.assertEqual([p for p in manifest["files"] if p.endswith(".cpfont")],
+                         list(scene["fonts"]["ui"].values()))
+
+    def test_legacy_four_role_declaration_remains_valid(self):
+        root = self.copy_payload()
+        self.update_json(root, "themes/halo/theme.json",
+                         lambda t: t.update(fonts={name: "themes/halo/fonts/" + filename
+                                                  for name, filename in zip(("ui_small", "ui_regular", "ui_large", "display"),
+                                                                           ("ui-small.cpfont", "ui-regular.cpfont", "ui-large.cpfont", "display.cpfont"))}))
+        self.update_json(root, "manifest.json",
+                         lambda m: m["themes"][0]["requires"].remove("theme.font-family.v1"))
+        self.assertEqual(tool.validate(root)["fonts"], 4)
+
+    def test_unsupported_ui_role_is_rejected(self):
+        root = self.copy_payload()
+        self.update_json(root, "themes/halo/theme.json",
+                         lambda t: t["fonts"].update(extra="themes/halo/fonts/ui-regular.cpfont"))
+        with self.assertRaisesRegex(tool.ThemeError, "invalid font role set"):
+            tool.validate(root)
+
+    def test_incomplete_ui_family_is_rejected(self):
+        root = self.copy_payload()
+        self.update_json(root, "themes/halo/theme.json",
+                         lambda t: t["fonts"]["ui"].pop("display"))
+        with self.assertRaisesRegex(tool.ThemeError, "invalid UI font family variants"):
+            tool.validate(root)
+
+    def test_single_file_ui_role_remains_valid(self):
+        root = self.copy_payload()
+        self.update_json(root, "themes/halo/theme.json",
+                         lambda t: t.update(fonts={"ui": "themes/halo/fonts/ui-regular.cpfont"}))
+        self.update_json(root, "manifest.json",
+                         lambda m: m.update(files=[p for p in m["files"]
+                                                   if not p.endswith(".cpfont") or p.endswith("ui-regular.cpfont")]))
+        self.assertEqual(tool.validate(root)["fonts"], 1)
+
     def test_missing_theme_file_fails(self):
         root = self.copy_payload()
         (root / "themes/halo/theme.json").unlink()
@@ -109,11 +149,59 @@ class PackageTests(unittest.TestCase):
 
     def test_corrupt_font_is_rejected(self):
         root = self.copy_payload()
-        file = root / "themes/halo/fonts/display.cpfont"
+        file = root / "themes/halo/fonts/ui-regular.cpfont"
         blob = bytearray(file.read_bytes())
         blob[0] = 0
         file.write_bytes(blob)
         with self.assertRaisesRegex(tool.ThemeError, "cpfont"):
+            tool.validate(root)
+
+    def test_cpfont_glyph_bitmap_overrun_is_rejected(self):
+        root = self.copy_payload()
+        file = root / "themes/halo/fonts/ui-small.cpfont"
+        blob = bytearray(file.read_bytes())
+        # Style 0 starts at the offset recorded in the v4 TOC.
+        offset = int.from_bytes(blob[56:60], "little")
+        intervals = int.from_bytes(blob[36:40], "little")
+        first_glyph = offset + intervals * 12
+        blob[first_glyph + 8:first_glyph + 10] = (65535).to_bytes(2, "little")
+        file.write_bytes(blob)
+        with self.assertRaisesRegex(tool.ThemeError, "glyph bitmap length"):
+            tool.validate(root)
+
+    def test_cpfont_invalid_unicode_intervals_are_rejected(self):
+        root = self.copy_payload()
+        file = root / "themes/halo/fonts/ui-small.cpfont"
+        blob = bytearray(file.read_bytes())
+        offset = int.from_bytes(blob[56:60], "little")
+        blob[offset + 8:offset + 12] = (1).to_bytes(4, "little")
+        file.write_bytes(blob)
+        with self.assertRaisesRegex(tool.ThemeError, "glyph index/interval span"):
+            tool.validate(root)
+
+    def test_family_variants_must_have_distinct_increasing_sizes(self):
+        root = self.copy_payload()
+        self.update_json(root, "themes/halo/theme.json",
+                         lambda t: t["fonts"]["ui"].update(
+                             small="themes/halo/fonts/ui-large.cpfont"))
+        with self.assertRaisesRegex(tool.ThemeError, "distinct files"):
+            tool.validate(root)
+
+        self.update_json(root, "themes/halo/theme.json",
+                         lambda t: t["fonts"]["ui"].update(
+                             small="themes/halo/fonts/ui-regular.cpfont",
+                             regular="themes/halo/fonts/ui-small.cpfont"))
+        with self.assertRaisesRegex(tool.ThemeError, "increase from small"):
+            tool.validate(root)
+
+    def test_cpfont_duplicate_style_is_rejected(self):
+        root = self.copy_payload()
+        file = root / "themes/halo/fonts/ui-regular.cpfont"
+        blob = bytearray(file.read_bytes())
+        self.assertGreaterEqual(blob[12], 2)
+        blob[64] = blob[32]
+        file.write_bytes(blob)
+        with self.assertRaisesRegex(tool.ThemeError, "duplicate/invalid cpfont"):
             tool.validate(root)
 
     def test_corrupt_bitmap_is_rejected(self):

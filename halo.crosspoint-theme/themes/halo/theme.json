@@ -382,9 +382,11 @@
     "hints": []
   },
   "fonts": {
-    "ui_small": "themes/halo/fonts/ui-small.cpfont",
-    "ui_regular": "themes/halo/fonts/ui-regular.cpfont",
-    "ui_large": "themes/halo/fonts/ui-large.cpfont",
-    "display": "themes/halo/fonts/display.cpfont"
+    "ui": {
+      "small": "themes/halo/fonts/ui-small.cpfont",
+      "regular": "themes/halo/fonts/ui-regular.cpfont",
+      "large": "themes/halo/fonts/ui-large.cpfont",
+      "display": "themes/halo/fonts/display.cpfont"
+    }
   }
 }

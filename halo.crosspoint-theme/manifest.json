@@ -17,6 +17,7 @@
         "theme.images.v1",
         "theme.composition.v1",
         "theme.fonts.v1",
+        "theme.font-family.v1",
         "theme.settings-navigation.v1"
       ]
     }

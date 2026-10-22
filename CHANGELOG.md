@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.1 — Capability and authoring documentation
+
+- Clarify the three independent SD extension types: plugins, themes, and BMP wallpaper packs.
+- Document runtime capability discovery through the firmware status API, compatible X3 development builds, and catalog limitations.
+- Improve independent theme creation guidance while preserving original HALO artwork and fonts.
+- Continue to credit iosdec and the original HALO firmware release.
+- No visual or binary asset changes.
+
 ## 0.1.0 — First SD theme collection release
 
 - HALO-inspired, monochrome CrossPoint UI collection based on the visual work of **iosdec**.

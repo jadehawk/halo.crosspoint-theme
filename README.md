@@ -24,7 +24,7 @@ A complete **SD-loaded theme collection** for CrossPoint-based e-readers. This r
 4. Reboot, open **Settings → Display → UI Theme**, and select **HALO**. Classic remains the firmware fallback.
 5. To see HALO's rotating sleep gallery, select **Dark** or **Light** under Sleep Screen. A user-selected Custom or Cover sleep mode takes precedence.
 
-The repository ZIP and release archive are different: the **release asset** `halo-0.1.0.crosspoint-theme.zip` contains the installable folder only. Extract it onto your computer or SD card; placing the ZIP itself under `/.crosspoint/themes/` does not install the collection. Automatic installation from Plugin Hub is **not supported yet**.
+The repository ZIP and release archive are different: the **release asset** `halo-0.1.1.crosspoint-theme.zip` contains the installable folder only. Extract it onto your computer or SD card; placing the ZIP itself under `/.crosspoint/themes/` does not install the collection. Automatic installation from Plugin Hub is **not supported yet**.
 
 ## Repository layout
 
@@ -46,7 +46,6 @@ halo.crosspoint-theme/                    ← public GitHub repository
 │   └── ATTRIBUTION.md
 ├── tools/
 │   ├── theme_tool.py                     ← validate / convert / preview / pack
-│   └── create_wallpaper_pack.py          ← start a simple sleep-wallpaper-only collection
 ├── tests/                                ← development validation, never installed
 ├── supported-firmware.json               ← catalog-friendly compatibility metadata
 └── README.md
@@ -58,7 +57,7 @@ halo.crosspoint-theme/                    ← public GitHub repository
 
 Create collections with one or more themes; customize bounded layout metrics, fonts, header, home, boot, and sleep compositions, monochrome artwork, text plates, row separators, corner cuts, and Settings list/tab preference. Multiple images in the `sleep_art` role give a **random** sleep image on each regular sleep entry (repeats are possible).
 
-**Yes, a collection can be wallpaper-focused**: omit home, header and boot scene operations and provide only the sleep scene. It will still select a Classic-based theme for the remaining UI, rather than overlaying whichever other theme was active. See [wallpaper pack instructions](docs/WALLPAPER_PACKS.md).
+**For sleep wallpapers only, use a standalone BMP wallpaper pack instead of a UI theme.** Wallpaper packs do not change the selected UI theme and require no CPB conversion. The theme's Dark/Light gallery remains separate. See [wallpaper packs vs theme galleries](docs/WALLPAPER_PACKS.md).
 
 ### Current limits
 
@@ -76,7 +75,7 @@ Create collections with one or more themes; customize bounded layout metrics, fo
 ```powershell
 python -m unittest discover -s tests -q
 python tools/theme_tool.py validate --root .
-python tools/theme_tool.py pack --root . --output dist/halo-0.1.0.crosspoint-theme.zip
+python tools/theme_tool.py pack --root . --output dist/halo-0.1.1.crosspoint-theme.zip
 python tools/theme_tool.py preview --input halo.crosspoint-theme/themes/halo/assets/home-hero.cpb --output dist/home-preview.png
 ```
 
@@ -87,7 +86,7 @@ python -m pip install Pillow
 python tools/theme_tool.py convert --input "my-image.png" --output "my-art.cpb" --width 528 --height 792 --fit cover --dither fs
 ```
 
-See [the developer contract](docs/THEME_CONTRACT.md), [theme authoring guide](docs/CREATE_THEMES.md), and [wallpaper-only quickstart](docs/WALLPAPER_PACKS.md).
+See [the developer contract](docs/THEME_CONTRACT.md), [theme authoring guide](docs/CREATE_THEMES.md), and [wallpaper pack and theme gallery differences](docs/WALLPAPER_PACKS.md).
 
 ## Publishing and Plugin Hub
 

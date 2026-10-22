@@ -31,7 +31,7 @@ A **Razor-Crest name check is not a substitute** for advertised capability suppo
 
 ## Current integration gap
 
-At present, the Razor-Crest experimental theme registry **recognizes capability strings while validating a theme**, but firmware does **not yet publish** those theme capabilities through the generic plugin information endpoint or any new public HTTP endpoint. Plugin Hub's existing catalog views do not yet define a complete `kind: theme-pack` installer.
+The Razor-Crest development branch **advertises theme and wallpaper capabilities** through `GET /api/status` → `pluginCapabilities` and the existing native `{plugin_capabilities}` substitutions. A new HTTP endpoint is not needed. Plugin Hub's existing catalog views do not yet define a complete `kind: theme-pack` installer.
 
 Thus a neutral data file (see [`supported-firmware.json`](../supported-firmware.json)) can record known implementations today, but it cannot on its own make visibility conditional in existing Plugin Hub.
 

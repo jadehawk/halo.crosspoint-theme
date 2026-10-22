@@ -1,51 +1,34 @@
-# Wallpaper-only SD theme collections
+# Wallpaper packs and theme sleep galleries
 
-**Yes—an SD theme can be a set of sleep wallpapers without changing the theme's Home, header or boot scene.** It remains a **theme**, not an ordinary `/.sleep` folder, so it needs the SD theme capabilities and a user-selected theme.
+There are now **two different ways to provide sleep artwork**.
 
-The non-sleep UI follows the **Classic base**. It does not retain the user's previously selected Lyra/RoundedRaff/other theme while overlaying only its sleep scene.
+| | Independent Custom wallpaper pack | A theme's own Dark/Light sleep gallery |
+|---|---|---|
+| Purpose | Wallpapers without changing UI theme | Wallpaper artwork that belongs to a full UI design |
+| Install directory | `/.crosspoint/wallpapers/<id>.crosspoint-wallpaper/` | `/.crosspoint/themes/<id>.crosspoint-theme/` |
+| Format | Ordinary BMP files | Bounded 1-bit CPB artwork |
+| Firmware requirement | `wallpaper.packs.v1` | `theme.sd.v1`, `theme.images.v1`, `theme.composition.v1` and other declared capabilities |
+| Selection | Sleep Screen = Custom → Wallpaper Collection | Settings → Display → UI Theme and Sleep Screen = Dark/Light |
+| Changes current UI theme? | **No** | **Yes** |
+| Timed wake rotation | Uses selected BMP collection | **Not yet**; the current timed path is separate |
 
-## Create one from images
+To create a **standalone wallpaper pack**, start from the separate local
+`crosspoint-wallpaper-template` repository and follow its
+`docs/WALLPAPER_PACK_CONTRACT.md`. Each collection has its own repository,
+version, README, BMP files and versioned install-only GitHub ZIP. Its collection
+title appears in the scrollable Wallpaper Collection picker; choosing
+**All wallpapers** retains the shared `/.sleep` and `/sleep` pool (and
+normal `/sleep.bmp` priority).
 
-Gather **1 to 8** PNG, JPEG, WebP or BMP images in a folder, then run:
+A UI theme may optionally provide up to eight `sleep_art` CPB images. HALO
+does this: each regular Dark/Light sleep transition chooses a random image
+and composes themed text/emblems. Such a gallery is **part of the selected UI
+theme** and falls back to its `classic` base, not another active theme.
 
-```powershell
-python -m pip install Pillow
-python tools/create_wallpaper_pack.py --images "C:\My Sleep Wallpapers" --out "dist\wallpaper-build" --id "my-wallpapers" --title "My Wallpapers" --author "Your Name"
-```
+Both kinds are declarative and firmware capability-gated. Neither is a plugin
+nor runs JavaScript. Folder-named collections **inside** `/.sleep`, automatic
+theme/wallpaper catalog installation, and timed refresh of a theme-internal
+gallery are deferred, not implemented.
 
-The generator creates:
-
-```text
-dist/wallpaper-build/
-├── my-wallpapers.crosspoint-theme/
-│   ├── manifest.json
-│   ├── README.md
-│   └── themes/wallpapers/
-│       ├── theme.json
-│       └── assets/
-│           ├── sleep-01.cpb
-│           ├── sleep-02.cpb
-│           └── ...
-└── my-wallpapers-0.1.0.crosspoint-theme.zip
-```
-
-The script converts each image to the X3's 528×792 monochrome CPB format and runs the same validator/packer as HALO. Change `--width` and `--height` only when targeting a different board you have actually tested.
-
-## Install and select
-
-1. Copy the *folder*, not just the ZIP, to `/.crosspoint/themes/`.
-2. On compatible firmware, select the new theme from **Settings → Display → UI Theme**.
-3. Set **Sleep Screen → Dark** or **Light**.
-4. Each normal sleep entry selects one image randomly. Repeats can occur.
-
-## Limitations
-
-- A wallpaper-only pack is **not** an addition to the Custom sleep wallpaper pool; it occupies a selectable theme entry.
-- **Custom** mode still reads the firmware's ordinary `/.sleep`/`/sleep` wallpaper pool. **Cover** and transparent modes retain their original precedence.
-- Timed sleep-screen refresh **does not yet use the theme's gallery**. It selects from the ordinary `/.sleep`/`/sleep` pool.
-- Collection folders *inside* `/.sleep` with named-pool selection are a **deferred idea**, not implemented.
-- No animation, full-color images, scripting, plugin actions, or new screen behaviors.
-- Current limit: up to eight images per theme; 2 MiB total installed payload.
-- Firmware without theme capabilities **cannot** read this pack. Stock CrossPoint currently falls in that category.
-
-For the full file format, operations and runtime capability list, see [Theme Contract](THEME_CONTRACT.md).
+See [Theme Contract](THEME_CONTRACT.md) and
+[Supported Firmware](SUPPORTED_FIRMWARE.md) before publishing.

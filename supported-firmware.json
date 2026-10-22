@@ -10,7 +10,7 @@
     {
       "name": "Razor-Crest",
       "repository": "https://github.com/jadehawk/Razor-Crest",
-      "status": "development",
+      "status": "development-branch",
       "verified_hardware": ["X3"],
       "theme_capabilities_implemented": [
         "theme.sd.v1",
@@ -20,7 +20,7 @@
         "theme.fonts.v1",
         "theme.settings-navigation.v1"
       ],
-      "notes": "SD theme worktree; feature not necessarily contained in publicly tagged Razor-Crest firmware releases."
+      "notes": "SD theme committed to razor-crest development branch, X3 hardware-tested; not yet a tagged Razor-Crest firmware release."
     }
   ],
   "not_yet_supported": [
@@ -30,6 +30,6 @@
       "notes": "Current examined 2.0.0.rc does not load external SD theme collections."
     }
   ],
-  "capability_advertisement": "Not yet exposed as a stable public firmware or HTTP endpoint.",
+  "capability_advertisement": "GET /api/status pluginCapabilities and native {plugin_capabilities} substitutions in supported development firmware.",
   "theme_catalog_installer_available": false
 }

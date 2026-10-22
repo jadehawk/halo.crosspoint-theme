@@ -83,7 +83,7 @@ The **exact manifest fields** are `kind`, `name`, `title`, `description`, `autho
 | `theme.fonts.v1` | Four optional SD UI font roles with stock-font restoration |
 | `theme.settings-navigation.v1` | Theme-preferred Settings list/tab presentation, subject to manual override |
 
-These strings are recognized by the experimental **ThemePackRegistry**. They are **not yet a publicly exposed HTTP capability endpoint** or an officially stable CrossPoint API. Catalogs should only claim runtime support after firmware advertises these values externally. Do not use the string `Razor-Crest` or version `2.0.0` as a substitute for capability negotiation.
+These strings are recognized by **ThemePackRegistry** and advertised by compatible development firmware through `GET /api/status` → `pluginCapabilities` and native `{plugin_capabilities}` substitution. They remain a provisional community contract, not an upstream CrossPoint API. Catalogs should only claim runtime support after firmware advertises these values externally. Do not use the string `Razor-Crest` or version `2.0.0` as a substitute for capability negotiation.
 
 ## Theme definition
 
@@ -116,7 +116,7 @@ Each `themes/<id>/theme.json` has exact required fields:
 }
 ```
 
-A wallpaper-only theme can use empty `metrics` and omit `header`, `home`, and `boot` regions. That retains **Classic-based default UI appearance**, not the previous active theme's appearance.
+For **standalone Custom sleep wallpaper packs**, use the separate `wallpaper.packs.v1` BMP format; it preserves the currently selected UI theme. A UI theme with only a `sleep` region is still possible, but its other regions use **Classic**, not the previously selected theme.
 
 ### Reference and adaptation
 

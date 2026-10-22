@@ -4,7 +4,7 @@ This guide describes the experimental **declarative** theme system. It is not an
 
 ## 1. Choose the theme's scope
 
-- **Wallpaper-only**: provide a `sleep` region and up to eight `sleep_art` assets. Other UI areas use the `classic` base. Use the [generator](WALLPAPER_PACKS.md).
+- **Standalone Custom sleep wallpaper pack**: use the independent BMP collection contract. It preserves the active UI theme. See [wallpaper packs vs theme galleries](WALLPAPER_PACKS.md). A theme may still supply an internal Dark/Light `sleep_art` gallery.
 - **UI restyle**: override bounded `metrics` and `styles` and add composition regions for `header`, `home`, `boot`, `sleep`.
 - **Fonts**: optionally bundle four `cpfont` v4 UI font roles. These are not reader/book font settings.
 - **Collection**: bundle one or more themes in the same pack, each with its own ID and `requires`.

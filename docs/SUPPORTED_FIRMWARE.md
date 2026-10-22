@@ -6,7 +6,7 @@ As of **2026-10-21**, the **only tested theme-capable implementation we know is 
 
 | Firmware / source | Status | Verified device | Compatibility |
 |---|---|---|---|
-| [Razor-Crest](https://github.com/jadehawk/Razor-Crest) — SD theme feature worktree | **Development; unpublished feature as of this record** | X3 | Supports required theme capabilities in source; host/device tests on X3 |
+| [Razor-Crest](https://github.com/jadehawk/Razor-Crest) — SD theme integration | **On the `razor-crest` development branch; not yet a tagged firmware release** | X3 | Supports required theme capabilities in source; host/device tests on X3 |
 | [CrossPoint upstream](https://github.com/crosspoint-reader/crosspoint-reader) | Theme support not available in the currently examined 2.0.0.rc code | — | Does **not** yet load SD theme packs |
 
 **Do not interpret this table as a firmware allow-list.** A future CrossPoint fork should appear when it implements the contract, and a catalog must prefer **runtime capabilities** rather than comparing firmware names.
@@ -22,7 +22,7 @@ These are declared under `themes[].requires` in `halo.crosspoint-theme/manifest.
 - `theme.fonts.v1` — load the four UI font roles and restore stock fonts on deselect.
 - `theme.settings-navigation.v1` — apply theme's default List/Tabs preference when user has not overridden it.
 
-The per-theme capabilities in the manifest are the **installation requirements**. A simpler wallpaper pack would require only the first four capabilities, not the fonts or navigation preference.
+The per-theme capabilities in the manifest are the **installation requirements**. A standalone BMP wallpaper pack is a separate package kind requiring `wallpaper.packs.v1`; it is not a subset of UI theme capabilities.
 
 ## Firmware surfaces / paths (not HTTP endpoints)
 
@@ -36,7 +36,7 @@ The per-theme capabilities in the manifest are the **installation requirements**
 | Fallback | Built-in Classic theme when a theme is missing or invalid |
 | Plugin independence | Themes remain available independently of Plugin System toggle |
 
-**There is currently no public HTTP API endpoint that advertises these theme capabilities**, and stock `plugin_capabilities` may contain only plugin/catalog features. Treat these capability values as the implemented firmware loader's input contract, *not* automatically discoverable runtime advertisement.
+Compatible development firmware advertises theme and wallpaper capabilities in the comma-separated `pluginCapabilities` field from **`GET /api/status`** while File Transfer or Calibre Wireless service is running. The native plugin catalog receives `{plugin_capabilities}`. No dedicated theme HTTP endpoint is needed.
 
 Catalogs must wait for an authoritative runtime capability signal before displaying/installing a theme. See [Catalog Integration](CATALOG_INTEGRATION.md). The companion machine-readable list is [`supported-firmware.json`](../supported-firmware.json).
 

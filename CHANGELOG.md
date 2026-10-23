@@ -1,6 +1,12 @@
 # Changelog
 
-## 0.1.2 — Device-friendly package metadata (unreleased)
+## 0.1.3 — Correct HALO author attribution (unreleased)
+
+- Credit **Jadehawk + IOSDEC** in the package metadata used by installed-theme details and Plugin Hub catalogs.
+- Reissue the package so the immutable release asset contains the corrected author; v0.1.2 remains unchanged.
+- Preserve all artwork, fonts, behavior, and capability requirements.
+
+## 0.1.2 — Device-friendly package metadata
 
 - Shorten the HALO pack display title without changing the stable `halo/halo` theme identity.
 - Ship a concise plain-ASCII installation README for lightweight on-device Details rendering.

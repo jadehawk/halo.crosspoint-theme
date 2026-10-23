@@ -37,6 +37,9 @@ class PackageTests(unittest.TestCase):
     def test_release_payload_validates(self):
         summary = tool.validate(PAYLOAD)
         self.assertEqual(summary["name"], "halo")
+        manifest = tool.read_json(PAYLOAD / "manifest.json")
+        self.assertEqual(manifest["author"], "Jadehawk + IOSDEC")
+        self.assertEqual(manifest["version"], "0.1.3")
         self.assertEqual(summary["themes"], 1)
         self.assertEqual(summary["bitmaps"], 7)
         self.assertEqual(summary["fonts"], 4)
@@ -62,6 +65,9 @@ class PackageTests(unittest.TestCase):
             names = archive.namelist()
             files = tool.read_json(PAYLOAD / "manifest.json")["files"]
             self.assertEqual(names, sorted("halo.crosspoint-theme/" + item for item in files))
+            released_manifest = json.loads(archive.read("halo.crosspoint-theme/manifest.json"))
+            self.assertEqual(released_manifest["author"], "Jadehawk + IOSDEC")
+            self.assertEqual(released_manifest["version"], "0.1.3")
             self.assertFalse(any("/tests/" in name or "/tools/" in name or "/docs/" in name for name in names))
 
     def test_required_capabilities_match_firmware_list(self):

@@ -387,13 +387,19 @@ def validate(root: Path) -> dict:
     require(isinstance(files, list) and 3 <= len(files) <= MAX_FILES and
             all(isinstance(x, str) for x in files) and len(set(files)) == len(files),
             "files must be a short unique list")
-    require({"manifest.json", "README.md"}.issubset(files) and theme_paths.issubset(files),
+    require({"manifest.json", "README.md", "DETAILS.md"}.issubset(files) and theme_paths.issubset(files),
             "missing mandatory files declaration")
     readme = located_file(root, "README.md").read_bytes()
     require(len(readme) <= 2048 and readme.isascii() and
             all(byte >= 32 or byte in (10, 13) for byte in readme) and
             not any(line.lstrip().startswith(("#", "*", "`")) for line in readme.decode("ascii").splitlines()),
             "package README must be <=2 KiB printable ASCII plain text")
+    details = located_file(root, "DETAILS.md").read_bytes()
+    require(0 < len(details) <= 12 * 1024, "DETAILS.md must be present and at most 12 KiB")
+    try:
+        require(bool(details.decode("utf-8").strip()), "DETAILS.md cannot be empty")
+    except UnicodeDecodeError as exc:
+        raise ThemeError("DETAILS.md must be valid UTF-8") from exc
     require(all(not p.endswith((".py", ".sh", ".js")) for p in files),
             "cannot install developer tools as theme runtime files")
     size = 0
@@ -524,7 +530,7 @@ def validate(root: Path) -> dict:
         require(count <= 48, "too many primitives")
         primitive_count += count
         region_count += len(regions)
-    allowed_resources = {"manifest.json", "README.md"} | theme_paths | resource_paths
+    allowed_resources = {"manifest.json", "README.md", "DETAILS.md"} | theme_paths | resource_paths
     require(set(files).issubset(allowed_resources),
             "manifest includes unreferenced files or unsupported resource")
     return {"name": name, "version": manifest["version"], "themes": len(themes),

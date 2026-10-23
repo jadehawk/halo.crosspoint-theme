@@ -26,6 +26,7 @@ my-themes.crosspoint-theme/                      ← GitHub repository
 └── my-themes.crosspoint-theme/                  ← installable payload
     ├── manifest.json
     ├── README.md
+    ├── DETAILS.md                 ← declared, packaged rich catalog description
     ├── themes/
     │   └── my-style/
     │       ├── theme.json
@@ -66,13 +67,14 @@ The collection ID, root folder name, manifest `name`, and theme IDs are stable i
   "files": [
     "manifest.json",
     "README.md",
+    "DETAILS.md",
     "themes/my-style/theme.json",
     "themes/my-style/assets/sleep-1.cpb"
   ]
 }
 ```
 
-The **exact manifest fields** are `kind`, `name`, `title`, `description`, `author`, `version`, `license`, `themes`, `files`. Unknown keys are rejected by the current host validator. Versions use `MAJOR.MINOR.PATCH`, without a `v` in the manifest. A release tag may use an initial `v`. Every runtime file must be listed, including `manifest.json` and the package README. All paths are relative to the payload root, never absolute or parent-traversing; symlinks are forbidden. The installer must not copy developer files or generated previews.
+The **exact manifest fields** are `kind`, `name`, `title`, `description`, `author`, `version`, `license`, `themes`, `files`. Unknown keys are rejected by the current host validator. Versions use `MAJOR.MINOR.PATCH`, without a `v` in the manifest. A release tag may use an initial `v`. Every runtime file must be listed, including `manifest.json`, the package README and the packaged rich `DETAILS.md`. All paths are relative to the payload root, never absolute or parent-traversing; symlinks are forbidden. The installer must not copy developer files or generated previews.
 
 ## Firmware capabilities currently recognized
 

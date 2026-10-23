@@ -28,7 +28,7 @@ A complete **SD-loaded theme collection** for CrossPoint-based e-readers. This r
 4. Reboot, open **Settings → Display → UI Theme**, and select **HALO**. Classic remains the firmware fallback.
 5. To see HALO's rotating sleep gallery, select **Dark** or **Light** under Sleep Screen. A user-selected Custom or Cover sleep mode takes precedence.
 
-The repository ZIP and release archive are different: the **release asset** `halo-0.1.3.crosspoint-theme.zip` contains the installable folder only. Extract it onto your computer or SD card; placing the ZIP itself under `/.crosspoint/themes/` does not install the collection. Automatic installation through the capability-aware Plugin Hub catalog requires compatible firmware; otherwise use manual installation.
+The repository ZIP and release archive are different: the **release asset** `halo-0.1.4.crosspoint-theme.zip` contains the installable folder only. Extract it onto your computer or SD card; placing the ZIP itself under `/.crosspoint/themes/` does not install the collection. Automatic installation through the capability-aware Plugin Hub catalog requires compatible firmware; otherwise use manual installation.
 
 ## Repository layout
 
@@ -37,6 +37,7 @@ halo.crosspoint-theme/                    ← public GitHub repository
 ├── halo.crosspoint-theme/                ← only installable payload
 │   ├── manifest.json                     ← theme-pack metadata, capabilities and files
 │   ├── README.md
+│   ├── DETAILS.md                   ← catalog-rich information; included in ZIP
 │   └── themes/halo/
 │       ├── theme.json                    ← appearance, layout and sleep scene
 │       ├── assets/                       ← 7 .cpb bitmaps, including 3 sleep images
@@ -79,7 +80,7 @@ Create collections with one or more themes; customize bounded layout metrics, fo
 ```powershell
 python -m unittest discover -s tests -q
 python tools/theme_tool.py validate --root .
-python tools/theme_tool.py pack --root . --output dist/halo-0.1.3.crosspoint-theme.zip
+python tools/theme_tool.py pack --root . --output dist/halo-0.1.4.crosspoint-theme.zip
 python tools/theme_tool.py preview --input halo.crosspoint-theme/themes/halo/assets/home-hero.cpb --output dist/home-preview.png
 ```
 

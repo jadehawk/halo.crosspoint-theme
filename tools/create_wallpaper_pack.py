@@ -71,7 +71,7 @@ def create(source: Path, output: Path, collection_id: str,
                 "requires": ["theme.sd.v1", "theme.metrics.v1",
                              "theme.images.v1", "theme.composition.v1"]
             }],
-            "files": ["manifest.json", "README.md", "themes/wallpapers/theme.json", *bitmaps]
+            "files": ["manifest.json", "README.md", "DETAILS.md", "themes/wallpapers/theme.json", *bitmaps]
         }
         theme_file = destination / "themes/wallpapers/theme.json"
         theme_file.parent.mkdir(parents=True, exist_ok=True)
@@ -81,6 +81,11 @@ def create(source: Path, output: Path, collection_id: str,
             f"{title}\n\nSleep gallery collection by {author}.\n"
             "Requires a theme-capable CrossPoint firmware. Select this theme then choose "
             "Dark/Light sleep mode. Other UI regions use Classic defaults.\n",
+            encoding="utf-8"
+        )
+        (destination / "DETAILS.md").write_text(
+            f"# {title}\n\nSleep wallpapers by {author} for compatible e-ink readers.\n\n"
+            "Requires firmware advertising the capabilities in the package manifest.\n",
             encoding="utf-8"
         )
         result = validate(destination)

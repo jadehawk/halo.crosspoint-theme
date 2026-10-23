@@ -20,6 +20,7 @@ my-theme.crosspoint-theme/
 ├── my-theme.crosspoint-theme/
 │   ├── manifest.json
 │   ├── README.md
+│   ├── DETAILS.md                 ← rich catalog details, declared in manifest
 │   └── themes/
 │       └── my-theme/
 │           ├── theme.json

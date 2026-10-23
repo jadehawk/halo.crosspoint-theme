@@ -1,6 +1,13 @@
 # Changelog
 
-## 0.1.3 — Correct HALO author attribution (unreleased)
+## 0.1.4 — Unified extension publishing contract (development only)
+
+- Package `DETAILS.md` within the declared theme payload, matching plugin publication.
+- Keep manifest description and `Jadehawk + IOSDEC` attribution authoritative for the catalog.
+- Add validation for the packaged details and keep release assets immutable.
+- Do not tag or publish until firmware and Plugin Hub have been tested together.
+
+## 0.1.3 — Correct HALO author attribution
 
 - Credit **Jadehawk + IOSDEC** in the package metadata used by installed-theme details and Plugin Hub catalogs.
 - Reissue the package so the immutable release asset contains the corrected author; v0.1.2 remains unchanged.

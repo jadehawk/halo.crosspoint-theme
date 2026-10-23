@@ -39,11 +39,25 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(summary["name"], "halo")
         manifest = tool.read_json(PAYLOAD / "manifest.json")
         self.assertEqual(manifest["author"], "Jadehawk + IOSDEC")
-        self.assertEqual(manifest["version"], "0.1.3")
+        self.assertEqual(manifest["version"], "0.1.4")
         self.assertEqual(summary["themes"], 1)
         self.assertEqual(summary["bitmaps"], 7)
         self.assertEqual(summary["fonts"], 4)
-        self.assertEqual(summary["files"], 14)
+        self.assertEqual(summary["files"], 15)
+
+    def test_packaged_details_contract_is_required(self):
+        root = self.copy_payload()
+        details = root / "DETAILS.md"
+        self.assertIn("Jadehawk + IOSDEC", details.read_text(encoding="utf-8"))
+        details.unlink()
+        with self.assertRaisesRegex(tool.ThemeError, "DETAILS.md"):
+            tool.validate(root)
+
+    def test_invalid_details_are_rejected(self):
+        root = self.copy_payload()
+        (root / "DETAILS.md").write_bytes(b"invalid" + bytes([255]))
+        with self.assertRaisesRegex(tool.ThemeError, "UTF-8"):
+            tool.validate(root)
 
     def test_repository_root_resolves_single_payload(self):
         self.assertEqual(tool.resolve_theme_root(ROOT), PAYLOAD.resolve())
@@ -67,7 +81,7 @@ class PackageTests(unittest.TestCase):
             self.assertEqual(names, sorted("halo.crosspoint-theme/" + item for item in files))
             released_manifest = json.loads(archive.read("halo.crosspoint-theme/manifest.json"))
             self.assertEqual(released_manifest["author"], "Jadehawk + IOSDEC")
-            self.assertEqual(released_manifest["version"], "0.1.3")
+            self.assertEqual(released_manifest["version"], "0.1.4")
             self.assertFalse(any("/tests/" in name or "/tools/" in name or "/docs/" in name for name in names))
 
     def test_required_capabilities_match_firmware_list(self):

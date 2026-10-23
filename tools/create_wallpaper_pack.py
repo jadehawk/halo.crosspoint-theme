@@ -31,8 +31,8 @@ def create(source: Path, output: Path, collection_id: str,
     destination = output / (collection_id + ".crosspoint-theme")
     if destination.exists():
         raise ThemeError("output folder already exists; choose a new output path")
-    if not title or not author or len(title) > 180 or len(author) > 180:
-        raise ThemeError("title and author are required and must be under 180 characters")
+    if not title or not author or len(title) > 180 or len(author) > 180 or not title.isascii() or not author.isascii():
+        raise ThemeError("title and author must be short ASCII text for device display")
 
     bitmaps = []
     try:
@@ -78,7 +78,7 @@ def create(source: Path, output: Path, collection_id: str,
         theme_file.write_text(json.dumps(theme, indent=2) + "\n", encoding="utf-8")
         (destination / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         (destination / "README.md").write_text(
-            f"# {title}\n\nSleep gallery collection by {author}.\n"
+            f"{title}\n\nSleep gallery collection by {author}.\n"
             "Requires a theme-capable CrossPoint firmware. Select this theme then choose "
             "Dark/Light sleep mode. Other UI regions use Classic defaults.\n",
             encoding="utf-8"

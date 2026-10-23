@@ -1,9 +1,16 @@
-# HALO Theme Collection
+HALO
 
-An unofficial HALO-inspired CrossPoint theme derived from the excellent firmware made by **iosdec**. Original firmware: https://github.com/iosdec/crosspoint-halo/releases/tag/v2.0.0rc-halo1
+An unofficial HALO-inspired theme for CrossPoint-based e-readers.
 
-Full acknowledgments and current capabilities: see the repository README and docs.
+Original HALO firmware and design inspiration by iosdec:
+https://github.com/iosdec/crosspoint-halo
 
-Install the complete `halo.crosspoint-theme/` folder at `/.crosspoint/themes/halo.crosspoint-theme/` on the SD card. With a supported firmware, choose HALO in Settings > Display > UI Theme.
+This pack includes a themed UI, Chakra Petch fonts, and three
+rotating sleep images for Dark and Light sleep modes.
 
-This is a theme-pack, not a plugin. It does not contain executable code. The theme ships 7 monochrome bitmap assets and 4 CPFONT UI font files. It includes three rotating sleep scenes for Dark/Light sleep modes. Custom sleep pools and timed-refresh selection are unaffected.
+Select HALO under Settings > Display > UI Theme.
+To install manually, copy the complete halo.crosspoint-theme folder to
+/.crosspoint/themes/ on the SD card.
+
+Requires compatible firmware with SD theme capabilities.
+This pack is not an executable plugin.

@@ -35,6 +35,8 @@ my-themes.crosspoint-theme/                      ← GitHub repository
     └── shared/assets/                            ← optional
 ```
 
+The theme selector should display the publisher's short `themes[].title` directly. Keep package `title`, theme `title`, and `description` concise for small e-paper screens; do not encode branding twice. The installed payload `README.md` is presented as plain text by lightweight firmware readers: keep it printable ASCII, with no emoji, Markdown headings, or formatting markers, and ideally under 2 KiB. The richer repository-root README can remain Markdown. These display text rules are authoring guidance; firmware must not sanitize the README at runtime.
+
 The collection ID, root folder name, manifest `name`, and theme IDs are stable identity keys. Firmware selects themes as `<collection-id>/<theme-id>`; renaming either is a breaking change. Each collection can contain multiple themes with distinct `requires`.
 
 ## Manifest
@@ -136,7 +138,7 @@ Optional:
 
 Artwork is referenced by named roles: `header_emblem`, `home_hero`, `boot_art`, `sleep_art`, `sleep_emblem`. A role points to `themes/<id>/assets/<filename>.cpb` or `shared/assets/<filename>.cpb`; assets must be in `files`. Only `sleep_art` may be a list (currently 1–8 images). The renderer chooses one at random per **regular sleep rendering**; repeats can occur.
 
-When a theme needs custom UI typography, `fonts` can declare one UI **family with four raster-size variants**: `{"ui":{"small":"themes/<id>/fonts/ui-small.cpfont","regular":"themes/<id>/fonts/ui-regular.cpfont","large":"themes/<id>/fonts/ui-large.cpfont","display":"themes/<id>/fonts/display.cpfont"}}`. Each size retains its own glyph metrics, preserving the original typography across Home, Settings, Library, menus, and other UI screens. Variant-family activation loads font metadata but **does not eagerly prewarm all four font caches**; glyphs are batched on demand and use the firmware's bounded resident cache. A single shared file (`{"ui":"themes/<id>/fonts/ui.cpfont"}`) remains supported for themes that intentionally use one raster size throughout. The legacy four-key form (`ui_small`, `ui_regular`, `ui_large`, `display`) remains compatible. All files must be listed in `manifest.files`, be v4 `.cpfont` assets within the theme's font directory, and require `theme.fonts.v1`. Both `fonts.ui` forms additionally require `theme.font-family.v1`, allowing older firmware to reject the extended format during discovery. Reader font families remain independent; theme deactivation safely restores stock UI fonts without deleting user-installed font files.
+When a theme needs custom UI typography, `fonts` can declare one UI **family with four raster-size variants**: `{"ui":{"small":"themes/<id>/fonts/ui-small.cpfont","regular":"themes/<id>/fonts/ui-regular.cpfont","large":"themes/<id>/fonts/ui-large.cpfont","display":"themes/<id>/fonts/display.cpfont"}}`. Each size retains its own glyph metrics, preserving the original typography across Home, Settings, Library, menus, and other UI screens. Variant-family activation uses a bounded font cache; the firmware may prewarm common UI glyphs and reclaim caches when network memory is tight. Developers must not assume glyph cache residency or force memory-intensive eager asset preloading. A single shared file (`{"ui":"themes/<id>/fonts/ui.cpfont"}`) remains supported for themes that intentionally use one raster size throughout. The legacy four-key form (`ui_small`, `ui_regular`, `ui_large`, `display`) remains compatible. All files must be listed in `manifest.files`, be v4 `.cpfont` assets within the theme's font directory, and require `theme.fonts.v1`. Both `fonts.ui` forms additionally require `theme.font-family.v1`, allowing older firmware to reject the extended format during discovery. Reader font families remain independent; theme deactivation safely restores stock UI fonts without deleting user-installed font files.
 
 ### Required font checks before publication
 
@@ -186,7 +188,7 @@ Current host limits: 1–16 themes/collection, up to 64 files, ≤2 MiB payload,
 - **Cover/transparent modes**: retain their own firmware selection behavior.
 - **Timed sleep-screen refresh**: still uses the ordinary SD wallpaper pool and **does not** rotate a theme's gallery during timed wakes.
 
-A theme cannot yet pick a named `/.sleep` subcollection, invoke a plugin, replace reader functionality, or manage its own install/update through the current Plugin Hub.
+A theme cannot pick a named `/.sleep` subcollection, invoke a plugin, or replace reader functionality. Firmware with the v2 capability-aware catalog consumer can install/update theme packs independently of the plugin-bundle installer; stock CrossPoint does not yet implement this.
 
 ## Author workflow and distribution
 
@@ -196,6 +198,6 @@ python -m unittest discover -s tests -q
 python tools/theme_tool.py pack --root . --output dist/my-themes-0.1.0.crosspoint-theme.zip
 ```
 
-A publisher should use the GitHub topic **`crosspoint-theme`**, maintain a Release matching manifest `version`, and put only payload files in the ZIP. **This is the planned catalog convention**—not an assertion that current Plugin Hub can discover themes.
+A publisher must use the GitHub topic **`crosspoint-theme`**, maintain a stable non-draft, non-prerelease Release matching manifest `version`, and put only payload files in the verified `<name>-<version>.crosspoint-theme.zip`. Plugin Hub now discovers these for `community-themes.json`; stock firmware does not yet install them. See [copy/paste AI instructions](AI_AGENT_GUIDE.md) and [full publishing guide](https://github.com/crosspoint-reader/crosspoint-plugin-hub/blob/main/docs/BUILD_AND_PUBLISH_EXTENSIONS.md).
 
 See [author instructions](CREATE_THEMES.md), [wallpaper collections](WALLPAPER_PACKS.md), [firmware compatibility](SUPPORTED_FIRMWARE.md), and [catalog filtering](CATALOG_INTEGRATION.md).

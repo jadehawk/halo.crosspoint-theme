@@ -1,58 +1,20 @@
-# Theme catalog discovery and conditional visibility — proposed
+# Theme catalog integration (capability aware)
 
-This document is intentionally **firmware-neutral**. The current production Plugin Hub exposes **Community Plugins**, but does **not** yet have a production Themes catalog or automatic theme installer. Nothing in this repository makes Plugin Hub discover themes today.
+Plugin Hub already publishes the opt-in [v2 catalog schema](https://github.com/crosspoint-reader/crosspoint-plugin-hub/blob/main/docs/EXTENSION_CATALOG_SCHEMA.md) as:
+- `catalog-lists-capabilities.json` (plugins, themes, wallpaper packs; each list has `kind`, `items`, `requires`)
+- `community-themes.json` (one item per collection, `themes[].requires`, immutable ZIP `asset_url` and `sha256`)
+- `community-wallpapers.json` (one item per artwork collection and screen-resolution variant)
 
-## Publishing convention (analogous to standalone plugins)
+Plugin Hub's legacy `catalog-lists.json` and plugin-only installer remain unchanged.
 
-1. One **public** GitHub repository per installable theme collection.
-2. Exactly one direct child `<collection-id>.crosspoint-theme/` containing `manifest.json`, `README.md`, and all declared runtime assets.
-3. Repository topic `crosspoint-theme`.
-4. Non-draft, non-prerelease GitHub Release, tag matching manifest version (`v0.1.0` or `0.1.0`).
-5. Package asset containing **only** the installable collection folder; no scripts, tests, docs, or developer artifacts.
+## Firmware status
 
-Catalog publishing should derive an immutable URL from the release, validate the manifest, verify `files` against the asset, check duplicates, and preserve stable collection identity. This resembles the Plugin Hub convention but must be a separate theme kind so it cannot be installed under a plugin root.
+**As of 2026-10-22, upstream CrossPoint does not yet expose an SD-theme loader or standalone wallpaper-pack loader.** [Razor-Crest](https://github.com/jadehawk/Razor-Crest) development firmware is the only known compatible implementation, and its capability-aware firmware catalog consumer is undergoing device validation. Not every release or device automatically has these features. The [known firmware table](SUPPORTED_FIRMWARE.md) is informational, not an allowlist.
 
-## Hide Themes entirely on unsupported firmware
+Compatible firmware advertises these capabilities through `GET /api/status` -> `pluginCapabilities` and the native `{plugin_capabilities}` replacement, then filters index rows by `requires`. For each theme, it must also verify every `themes[].requires`. An unsupported firmware **must not show** the Themes catalog or install a theme under the plugin root.
 
-**Yes, it is possible, and preferable.** The catalog UI should first inspect **runtime capability advertisement**:
+The installed theme is under `/.crosspoint/themes/<collection>.crosspoint-theme/` with `manifest.json`, a plain-ASCII device README, `themes/<id>/theme.json` and declared CPB/CPFONTS. The firmware installs an immutable release ZIP after checksum/manifest/path/size checks and staged replacement, not from arbitrary repo branches. Active theme replacement/removal must not invalidate resources in use. Defaults fall back to Classic.
 
-```text
-if firmware advertises theme.sd.v1 and theme.metrics.v1:
-    show the Themes catalog entry
-    for each theme:
-        show/enable only when every themes[].requires capability is present
-else:
-    do not render the Themes catalog entry at all
-```
+Themes are data, not executable plugins. Their full declared primitives are `theme.sd.v1`, `theme.metrics.v1`, `theme.images.v1`, `theme.composition.v1`, `theme.fonts.v1`, `theme.font-family.v1`, and `theme.settings-navigation.v1`. See [all regions, operations, font roles, styles and bounds](THEME_CONTRACT.md#theme-definition).
 
-A theme gallery containing CPB artwork additionally needs `theme.images.v1` and `theme.composition.v1`; font-bearing themes need `theme.fonts.v1`. Catalog installation requires a firmware-supported theme installation operation/root, **not the existing plugin installer**.
-
-A **Razor-Crest name check is not a substitute** for advertised capability support. Unsupported firmware should never show an install button that will write theme files into `/.crosspoint/plugins`.
-
-## Current integration gap
-
-The Razor-Crest development branch **advertises theme and wallpaper capabilities** through `GET /api/status` → `pluginCapabilities` and the existing native `{plugin_capabilities}` substitutions. A new HTTP endpoint is not needed. Plugin Hub's existing catalog views do not yet define a complete `kind: theme-pack` installer.
-
-Thus a neutral data file (see [`supported-firmware.json`](../supported-firmware.json)) can record known implementations today, but it cannot on its own make visibility conditional in existing Plugin Hub.
-
-Recommended next integration, when implementing Community Themes:
-
-- Expose theme capabilities through an authoritative firmware capabilities response (ideally extend the existing capability mechanism; avoid an additional redundant endpoint).
-- Let the Plugin Hub UI conditionally register/show **Community Themes** only when that capability is present.
-- Apply per-theme `requires` filtering for selection/install.
-- Add a **theme-specific, validated installation path** with staging/replacement/rollback; keep plugin installations independent.
-- Hide unsupported catalog types entirely, and ensure manually sideloaded unsupported packs cannot crash the UI.
-- Keep the neutral known-firmware list informative, never an allow-list preventing additional compatible forks.
-
-**Proposed catalog gating contract, not a JSON schema already understood by current Plugin Hub:**
-
-```json
-{
-  "catalog_kind": "themes",
-  "title": "Community Themes",
-  "visible_requires": ["theme.sd.v1", "theme.metrics.v1"],
-  "install_kind": "theme-pack"
-}
-```
-
-The real catalog implementation must negotiate capabilities with the firmware and validate theme payloads; do not copy these illustrative keys into existing `device.json` or plugin catalog JSON expecting them to work today.
+For publisher instructions and a reusable AI assistant prompt, use [AI Agent Guide](AI_AGENT_GUIDE.md). For GitHub topics, release asset naming, discovery and catalog publication requirements, see [Plugin Hub extension authoring](https://github.com/crosspoint-reader/crosspoint-plugin-hub/blob/main/docs/BUILD_AND_PUBLISH_EXTENSIONS.md). Do not invent catalog fields or create `device.json` for a theme.

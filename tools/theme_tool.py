@@ -355,6 +355,8 @@ def validate(root: Path) -> dict:
     for field in ("title", "description", "author", "license"):
         require(isinstance(manifest[field], str) and
                 1 <= len(manifest[field]) <= 180, "invalid field: " + field)
+    require(all(manifest[field].isascii() for field in ("title", "description", "author")),
+            "display metadata must use ASCII supported by device fonts")
     themes = manifest["themes"]
     require(isinstance(themes, list) and 1 <= len(themes) <= 16,
             "theme-pack requires 1..16 theme definitions")
@@ -368,8 +370,8 @@ def validate(root: Path) -> dict:
                 "invalid theme ID in collection")
         require(tid not in ids, "duplicate theme ID in collection: " + tid)
         ids.add(tid)
-        require(isinstance(entry["title"], str) and 1 <= len(entry["title"]) <= 100,
-                "invalid theme title")
+        require(isinstance(entry["title"], str) and 1 <= len(entry["title"]) <= 100 and
+                entry["title"].isascii(), "theme title must be short displayable ASCII")
         require(isinstance(entry["path"], str), "invalid theme definition path")
         safe_path(entry["path"])
         require(entry["path"] == "themes/" + tid + "/theme.json",
@@ -387,6 +389,11 @@ def validate(root: Path) -> dict:
             "files must be a short unique list")
     require({"manifest.json", "README.md"}.issubset(files) and theme_paths.issubset(files),
             "missing mandatory files declaration")
+    readme = located_file(root, "README.md").read_bytes()
+    require(len(readme) <= 2048 and readme.isascii() and
+            all(byte >= 32 or byte in (10, 13) for byte in readme) and
+            not any(line.lstrip().startswith(("#", "*", "`")) for line in readme.decode("ascii").splitlines()),
+            "package README must be <=2 KiB printable ASCII plain text")
     require(all(not p.endswith((".py", ".sh", ".js")) for p in files),
             "cannot install developer tools as theme runtime files")
     size = 0

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2 — Device-friendly package metadata (unreleased)
+
+- Shorten the HALO pack display title without changing the stable `halo/halo` theme identity.
+- Ship a concise plain-ASCII installation README for lightweight on-device Details rendering.
+- Keep original designer credit and artwork unchanged; document the publisher-side text contract.
+
 ## 0.1.1 — Capability and authoring documentation
 
 - Clarify the three independent SD extension types: plugins, themes, and BMP wallpaper packs.

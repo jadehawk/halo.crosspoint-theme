@@ -1,10 +1,10 @@
 {
   "kind": "theme-pack",
   "name": "halo",
-  "title": "HALO Theme Collection",
+  "title": "HALO",
   "description": "SD-loaded HALO-inspired CrossPoint UI, with original artwork, Chakra Petch fonts, and three rotating sleep scenes.",
   "author": "Jadehawk",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "license": "Unofficial HALO fan theme; third-party art and font rights remain with original owners. See attribution.",
   "themes": [
     {

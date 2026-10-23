@@ -6,6 +6,10 @@ A complete **SD-loaded theme collection** for CrossPoint-based e-readers. This r
 >
 > This is an unofficial fan-made HALO-themed project, not affiliated with or endorsed by Microsoft, Xbox, Halo Studios, iosdec, or the CrossPoint core maintainers. Trademarks and third-party media retain their respective owners' rights. See [Attribution](docs/ATTRIBUTION.md).
 
+**Build your own theme with an AI assistant:** [AI Agent Guide](docs/AI_AGENT_GUIDE.md) | [Complete theme contract and primitives](docs/THEME_CONTRACT.md) | [Known compatible firmware](docs/SUPPORTED_FIRMWARE.md) | [Plugin Hub publishing](https://github.com/crosspoint-reader/crosspoint-plugin-hub/blob/main/docs/BUILD_AND_PUBLISH_EXTENSIONS.md).
+
+**Firmware support:** stock upstream CrossPoint does **not** yet implement SD theme packs. The only established theme-capable firmware currently is the development `razor-crest` branch of [Razor-Crest](https://github.com/jadehawk/Razor-Crest), gated by advertised `theme.*` capabilities, not its name.
+
 ## What it includes
 
 - HALO-inspired home wallpaper, date and tagline, themed Continue Reading card, menu rows, black UNSC header, boot art, and chamfered button hints.
@@ -24,7 +28,7 @@ A complete **SD-loaded theme collection** for CrossPoint-based e-readers. This r
 4. Reboot, open **Settings → Display → UI Theme**, and select **HALO**. Classic remains the firmware fallback.
 5. To see HALO's rotating sleep gallery, select **Dark** or **Light** under Sleep Screen. A user-selected Custom or Cover sleep mode takes precedence.
 
-The repository ZIP and release archive are different: the **release asset** `halo-0.1.1.crosspoint-theme.zip` contains the installable folder only. Extract it onto your computer or SD card; placing the ZIP itself under `/.crosspoint/themes/` does not install the collection. Automatic installation from Plugin Hub is **not supported yet**.
+The repository ZIP and release archive are different: the **release asset** `halo-0.1.2.crosspoint-theme.zip` contains the installable folder only. Extract it onto your computer or SD card; placing the ZIP itself under `/.crosspoint/themes/` does not install the collection. Automatic installation through the capability-aware Plugin Hub catalog requires compatible firmware; otherwise use manual installation.
 
 ## Repository layout
 
@@ -42,7 +46,7 @@ halo.crosspoint-theme/                    ← public GitHub repository
 │   ├── CREATE_THEMES.md                  ← how to author other theme collections
 │   ├── WALLPAPER_PACKS.md                ← wallpaper-focused theme collections
 │   ├── SUPPORTED_FIRMWARE.md             ← neutral list of known implementations
-│   ├── CATALOG_INTEGRATION.md            ← future Plugin Hub compatibility/gating contract
+│   ├── CATALOG_INTEGRATION.md            ← published v2 catalog and capability gating
 │   └── ATTRIBUTION.md
 ├── tools/
 │   ├── theme_tool.py                     ← validate / convert / preview / pack
@@ -67,7 +71,7 @@ Create collections with one or more themes; customize bounded layout metrics, fo
 - Sleep galleries currently have **up to eight images** per theme. They are selected at regular sleep entry in Dark/Light modes; **timed sleep refresh still reads `/.sleep` and `/sleep`**, not theme assets.
 - Custom sleep-wallpaper modes use the normal SD pool, not the theme gallery.
 - The UI font loader has constrained sizes and bounded memory/cache behavior. Reader book fonts are not replaced.
-- Theme catalog discovery, installation, and device compatibility filtering in Plugin Hub are **future integration**, not current Plugin Hub features.
+- Theme catalog installation requires firmware implementing the capability-aware extension catalog; not every firmware exposes that consumer yet.
 - Current images and layout were verified on X3; other devices need independent testing and may differ.
 
 ## Build and validate your collection (Python 3.10+)
@@ -75,7 +79,7 @@ Create collections with one or more themes; customize bounded layout metrics, fo
 ```powershell
 python -m unittest discover -s tests -q
 python tools/theme_tool.py validate --root .
-python tools/theme_tool.py pack --root . --output dist/halo-0.1.1.crosspoint-theme.zip
+python tools/theme_tool.py pack --root . --output dist/halo-0.1.2.crosspoint-theme.zip
 python tools/theme_tool.py preview --input halo.crosspoint-theme/themes/halo/assets/home-hero.cpb --output dist/home-preview.png
 ```
 
@@ -90,9 +94,9 @@ See [the developer contract](docs/THEME_CONTRACT.md), [theme authoring guide](do
 
 ## Publishing and Plugin Hub
 
-Use a **public GitHub repository**, one directly nested `<collection-id>.crosspoint-theme/` payload folder, topic **`crosspoint-theme`**, and a non-draft GitHub Release with a tag matching the manifest version (e.g. `v0.1.0`). This follows the standalone-plugin *publishing convention*, but **the current Plugin Hub catalog does not yet scan or install themes**.
+Use a **public GitHub repository**, one directly nested `<collection-id>.crosspoint-theme/` payload folder, topic **`crosspoint-theme`**, and a non-draft GitHub Release with a tag matching the manifest version (e.g. `v0.1.0`). This follows the standalone-plugin *publishing convention*, and capability-aware Plugin Hub catalogs discover themes. Installation still requires a compatible firmware consumer.
 
-Future catalogs should be hidden on firmware that does **not advertise theme support**, not merely when its product/version name is absent from a list. See [catalog integration](docs/CATALOG_INTEGRATION.md).
+Theme catalogs must be hidden on firmware that does **not advertise theme support**, not merely when its product/version name is absent from a list. See [catalog integration](docs/CATALOG_INTEGRATION.md).
 
 ## Acknowledgments
 

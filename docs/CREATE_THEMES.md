@@ -2,6 +2,8 @@
 
 This guide describes the experimental **declarative** theme system. It is not an upstream firmware API guarantee. Read the [Theme Contract](THEME_CONTRACT.md) for field-level constraints and [Supported Firmware](SUPPORTED_FIRMWARE.md) before sharing a collection.
 
+To have an AI coding assistant create a complete new repo, copy the instructions in [AI_AGENT_GUIDE.md](AI_AGENT_GUIDE.md). The authoritative theme-primitives list and exact validator limits remain in [THEME_CONTRACT.md](THEME_CONTRACT.md).
+
 ## 1. Choose the theme's scope
 
 - **Standalone Custom sleep wallpaper pack**: use the independent BMP collection contract. It preserves the active UI theme. See [wallpaper packs vs theme galleries](WALLPAPER_PACKS.md). A theme may still supply an internal Dark/Light `sleep_art` gallery.
@@ -27,6 +29,8 @@ my-theme.crosspoint-theme/
 ├── tools/                          ← developer tooling, not installed
 └── README.md
 ```
+
+Write a short `themes[].title` (for example, `HALO`) because the device displays this text directly. The installed payload's `README.md` is a plain-text About preview: use ASCII, skip emoji and Markdown, and keep it under 2 KiB. Keep richer contributor instructions in the repository-root README. Themes do not have `device.json`; their manifest is the metadata authority.
 
 Use lowercase letters, numbers and hyphens in collection and theme IDs. Every referenced asset belongs to the theme directory or a declared shared directory, and every runtime file must be enumerated in the manifest. Do not add `device.json` or `plugin.js`.
 
@@ -61,6 +65,6 @@ The ZIP contains only the declared payload folder, not repo development files. T
 
 Copy the extracted `<id>.crosspoint-theme` folder to `/.crosspoint/themes/` on the SD card. Reboot, select it under **Settings → Display → UI Theme**, verify appearance, switching back to Classic, sleep precedence and theme removal/renaming recovery.
 
-Create a public GitHub repository, topic `crosspoint-theme`, and a stable release tag matching `manifest.version` (e.g. `v0.1.0`). A catalog may discover such repositories **in future**, but current Plugin Hub has no production Community Themes catalog yet.
+Create a public GitHub repository, topic `crosspoint-theme`, and a stable release tag matching `manifest.version` (e.g. `v0.1.0`). Plugin Hub's three-hour workflow publishes eligible collections in `community-themes.json`, indexed through `catalog-lists-capabilities.json`. Only firmware advertising the corresponding theme capabilities can display and install them.
 
-See [Catalog Integration](CATALOG_INTEGRATION.md) for how a compatible future host should filter the catalog by firmware capabilities. Do not claim general CrossPoint support until tested.
+See [Catalog Integration](CATALOG_INTEGRATION.md) for how a compatible capability-aware firmware host should filter the catalog by firmware capabilities. Do not claim general CrossPoint support until tested.

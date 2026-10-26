@@ -244,9 +244,10 @@ def check_region_op(op: dict, assets: dict, region: str, index: int):
         require(op.get("orientation", "horizontal") in ("horizontal", "vertical"),
                 tag + " invalid line orientation")
     if kind == "book-card":
-        require(region == "home" and op.get("variant", "standard") in ("standard", "outlined", "filled"),
+        require(region == "home" and op.get("variant", "standard") in ("standard", "outlined", "filled", "cover"),
                 tag + " unsupported book card")
         if "badge_asset" in op:
+            require(op.get("variant") != "cover", tag + " cover variant cannot use badge asset")
             require(op["badge_asset"] in assets and isinstance(assets[op["badge_asset"]], str),
                     tag + " unknown badge asset")
     if kind == "progress":
@@ -520,6 +521,9 @@ def validate(root: Path) -> dict:
             required_capabilities.add("theme.images.v1")
         if any(regions.values()):
             required_capabilities.add("theme.composition.v1")
+        if any(op.get("op") == "book-card" and op.get("variant") == "cover"
+               for ops in regions.values() for op in ops):
+            required_capabilities.add("theme.book-cover.v1")
         require(required_capabilities.issubset(set(entry["requires"])),
                 "theme requires missing feature capability")
         for key, ops in regions.items():

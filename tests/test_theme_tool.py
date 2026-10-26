@@ -110,6 +110,19 @@ class PackageTests(unittest.TestCase):
                          lambda m: m["themes"][0]["requires"].remove("theme.font-family.v1"))
         self.assertEqual(tool.validate(root)["fonts"], 4)
 
+    def test_native_book_cover_variant_requires_capability(self):
+        root = self.copy_payload()
+        def cover(scene):
+            card = next(op for op in scene["regions"]["home"] if op["op"] == "book-card")
+            card["variant"] = "cover"
+            card.pop("badge_asset", None)
+        self.update_json(root, "themes/halo/theme.json", cover)
+        with self.assertRaisesRegex(tool.ThemeError, "missing feature capability"):
+            tool.validate(root)
+        self.update_json(root, "manifest.json",
+                         lambda m: m["themes"][0]["requires"].append("theme.book-cover.v1"))
+        self.assertEqual(tool.validate(root)["themes"], 1)
+
     def test_unsupported_ui_role_is_rejected(self):
         root = self.copy_payload()
         self.update_json(root, "themes/halo/theme.json",

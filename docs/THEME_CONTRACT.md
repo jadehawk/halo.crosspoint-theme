@@ -86,6 +86,7 @@ The **exact manifest fields** are `kind`, `name`, `title`, `description`, `autho
 | `theme.composition.v1` | Declarative named UI rendering regions and operations |
 | `theme.fonts.v1` | Four optional SD UI font roles with stock-font restoration |
 | `theme.settings-navigation.v1` | Theme-preferred Settings list/tab presentation, subject to manual override |
+| `theme.book-cover.v1` | Opt-in native Home thumbnail card with saved progress when available (development primitive; requires firmware support) |
 
 These strings are recognized by **ThemePackRegistry** and advertised by compatible development firmware through `GET /api/status` → `pluginCapabilities` and native `{plugin_capabilities}` substitution. They remain a provisional community contract, not an upstream CrossPoint API. Catalogs should only claim runtime support after firmware advertises these values externally. Do not use the string `Razor-Crest` or version `2.0.0` as a substitute for capability negotiation.
 
@@ -167,7 +168,7 @@ The `header` scene also renders on touch devices, including Settings, Library, a
 - `bitmap`: asset role with fit `native|contain|cover` and optional `ink-only` masking.
 - `text`: a literal `value` or firmware-owned `source`, font role, spacing, and optional chamfered dark/light plate.
 - `line`: horizontal or vertical rule.
-- `book-card`: firmware-owned Continue Reading information; may reference an optional emblem.
+- `book-card`: firmware-owned Continue Reading information; classic `outlined`/`filled` strip may reference an emblem. Optional `variant: "cover"` is a Home-only, firmware-rendered 166px card showing the current book thumbnail, title, author, and authentic saved progress bar/percentage when known. The cover variant cannot use `badge_asset`, requires `theme.book-cover.v1`, and does not replace any reader/menu input. Allow enough Home scene height beneath the art to avoid overlap. Firmware without this capability must reject the theme rather than silently lose its cover.
 - `progress`: bounded firmware-provided progress value.
 
 Text sources are restricted to `screen_title`, `date`, `device_name`, `book_title`, `book_author`, `progress_percent`, `tagline`, `loading_percent`. No arbitrary data lookup, shell, JavaScript, plugin callbacks, gesture bindings, or network access.

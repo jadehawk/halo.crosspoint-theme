@@ -154,6 +154,25 @@ class PackageTests(unittest.TestCase):
         with self.assertRaisesRegex(tool.ThemeError, "invalid screen decoration"):
             tool.validate(root)
 
+    def test_full_screen_background_is_optional_and_capability_gated(self):
+        root = self.copy_payload()
+        def decorate(scene):
+            scene["assets"]["screen_background_art"] = scene["assets"]["home_hero"]
+            scene["regions"]["screen_background"] = [{
+                "op": "bitmap", "asset": "screen_background_art", "anchor": "center",
+                "paint": "ink-only", "fit": "contain", "max_height": 792
+            }]
+        self.update_json(root, "themes/halo/theme.json", decorate)
+        with self.assertRaisesRegex(tool.ThemeError, "screen background capability"):
+            tool.validate(root)
+        self.update_json(root, "manifest.json",
+                         lambda m: m["themes"][0]["requires"].append("theme.screen-background.v1"))
+        self.assertEqual(tool.validate(root)["themes"], 1)
+        self.update_json(root, "themes/halo/theme.json",
+                         lambda scene: scene["regions"]["screen_background"][0].update(paint="opaque"))
+        with self.assertRaisesRegex(tool.ThemeError, "invalid screen background"):
+            tool.validate(root)
+
     def test_unsupported_ui_role_is_rejected(self):
         root = self.copy_payload()
         self.update_json(root, "themes/halo/theme.json",

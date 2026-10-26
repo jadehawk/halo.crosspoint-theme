@@ -89,6 +89,7 @@ The **exact manifest fields** are `kind`, `name`, `title`, `description`, `autho
 | `theme.book-cover.v1` | Opt-in native Home thumbnail card with saved progress when available (development primitive; requires firmware support) |
 | `theme.menu-decoration.v1` | Opt-in Home menu double outlines and decorative footer art drawn above button hints |
 | `theme.screen-decoration.v1` | Reusable non-reading screen decoration within confirmed unused layout space; one declared, one-bit ink-only bitmap, maximum 128px tall |
+| `theme.screen-background.v1` | Opt-in full-height one-bit ink-only background underlay for non-reading list and File Transfer screens, independently capability-gated |
 
 A minimal, firmware-agnostic declaration looks like:
 
@@ -104,6 +105,19 @@ A minimal, firmware-agnostic declaration looks like:
   }
 }
 ```
+
+**Experimental full-screen underlay (opt-in):** A theme may declare a separate
+`assets.screen_background_art` monochrome CPB and a single
+`regions.screen_background` bitmap operation with
+`paint: "ink-only"`, `fit: "contain"`, and `max_height` 1–1024.
+The theme must additionally require `theme.screen-background.v1`. The
+firmware draws this beneath the native list/File Transfer UI immediately
+after clearing the buffer; it never alters button hitboxes or reading pages.
+Native widgets may erase portions of the artwork as they draw opaque regions.
+Keep the center nearly empty and use this primarily for corner/edge details.
+This capability is an early hardware-testing primitive, not a guarantee that
+artwork shows through every widget. The separate lower-band decoration remains
+available for guaranteed visibility when there is empty space.
 
 **Non-reading screen decoration (opt-in):** declare `theme.screen-decoration.v1` in the theme's `requires`, a scalar `assets.screen_art` CPB path, and exactly one `regions.screen` bitmap operation using `paint: "ink-only"`, `anchor: "bottom"`, and `max_height` from 1 through 128. The firmware renders that decoration *after* native content and only when a lower content band is provably empty. This is reused across short Settings, Library, and Plugin-list screens and, where QR codes leave room, File Transfer. Long/scrolled lists, the Reader, Home and sleep screens do not receive a forced overlay. Themes must keep a white center and avoid fake buttons; actual text, controls, focus, selection and input stay firmware-owned. Older firmware rejects the new capability. This is **not** an arbitrary full-page wallpaper behind text.
 

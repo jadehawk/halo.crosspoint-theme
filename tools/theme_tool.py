@@ -30,7 +30,7 @@ MAX_PACKAGE_BYTES = 2 * 1024 * 1024
 MAX_FILES = 64
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
-ASSET_ROLES = {"header_emblem", "home_hero", "boot_art", "sleep_art", "sleep_emblem"}
+ASSET_ROLES = {"header_emblem", "home_hero", "home_footer", "boot_art", "sleep_art", "sleep_emblem"}
 REGIONS = {"header", "home", "boot", "sleep", "hints"}
 SOURCES = {
     "screen_title", "date", "device_name", "book_title", "book_author",
@@ -433,7 +433,8 @@ def validate(root: Path) -> dict:
         styles = spec["styles"]
         exact_keys(styles, {"header_background", "header_foreground", "selection",
                             "row_separators", "corners", "chamfer_cut", "settings_navigation",
-                            "chamfer_card_cut", "chamfer_row_cut", "chamfer_hint_cut"},
+                            "chamfer_card_cut", "chamfer_row_cut", "chamfer_hint_cut",
+                             "menu_double_outline", "menu_footer_asset"},
                    {"header_background", "header_foreground", "selection",
                     "row_separators", "corners", "chamfer_cut"}, "styles")
         require(styles["header_background"] in PALETTE and
@@ -455,6 +456,18 @@ def validate(root: Path) -> dict:
             if cut in styles:
                 require(type(styles[cut]) is int and 0 <= styles[cut] <= 32,
                         "invalid chamfer size for " + cut)
+        if "menu_double_outline" in styles:
+            require(type(styles["menu_double_outline"]) is bool, "menu outline must be boolean")
+        if "menu_footer_asset" in styles:
+            require(isinstance(styles["menu_footer_asset"], str) and
+                    styles["menu_footer_asset"] == "home_footer", "invalid menu footer role")
+        has_menu_decoration = bool(styles.get("menu_double_outline", False) or
+                                   styles.get("menu_footer_asset"))
+        require(has_menu_decoration == ("theme.menu-decoration.v1" in entry["requires"]),
+                "menu decoration capability must match styles")
+        if has_menu_decoration:
+            require(styles.get("chamfer_row_cut", 0) > 0,
+                    "menu decoration requires chamfer_row_cut")
         fonts = spec.get("fonts", {})
         require(isinstance(fonts, dict) and
                 (not fonts or set(fonts) == {"ui"} or
@@ -511,6 +524,9 @@ def validate(root: Path) -> dict:
                 require(path.endswith(".cpb") and path in files, "undeclared bitmap: " + path)
                 decode_cpb(located_file(root, path).read_bytes())
                 resource_paths.add(path)
+        if "menu_footer_asset" in styles:
+            require(styles["menu_footer_asset"] in assets,
+                    "menu footer image must be declared")
         regions = spec["regions"]
         require(isinstance(regions, dict) and set(regions).issubset(REGIONS),
                 "unsupported region")

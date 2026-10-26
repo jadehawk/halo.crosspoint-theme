@@ -123,6 +123,18 @@ class PackageTests(unittest.TestCase):
                          lambda m: m["themes"][0]["requires"].append("theme.book-cover.v1"))
         self.assertEqual(tool.validate(root)["themes"], 1)
 
+    def test_menu_double_outline_requires_declared_capability(self):
+        root = self.copy_payload()
+        def decorate(scene):
+            scene["styles"]["menu_double_outline"] = True
+            scene["styles"]["chamfer_row_cut"] = 10
+        self.update_json(root, "themes/halo/theme.json", decorate)
+        with self.assertRaisesRegex(tool.ThemeError, "menu decoration capability"):
+            tool.validate(root)
+        self.update_json(root, "manifest.json",
+                         lambda m: m["themes"][0]["requires"].append("theme.menu-decoration.v1"))
+        self.assertEqual(tool.validate(root)["themes"], 1)
+
     def test_unsupported_ui_role_is_rejected(self):
         root = self.copy_payload()
         self.update_json(root, "themes/halo/theme.json",

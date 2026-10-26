@@ -87,6 +87,7 @@ The **exact manifest fields** are `kind`, `name`, `title`, `description`, `autho
 | `theme.fonts.v1` | Four optional SD UI font roles with stock-font restoration |
 | `theme.settings-navigation.v1` | Theme-preferred Settings list/tab presentation, subject to manual override |
 | `theme.book-cover.v1` | Opt-in native Home thumbnail card with saved progress when available (development primitive; requires firmware support) |
+| `theme.menu-decoration.v1` | Opt-in Home menu double outlines and validated Peanuts-style footer art drawn above button hints |
 
 These strings are recognized by **ThemePackRegistry** and advertised by compatible development firmware through `GET /api/status` → `pluginCapabilities` and native `{plugin_capabilities}` substitution. They remain a provisional community contract, not an upstream CrossPoint API. Catalogs should only claim runtime support after firmware advertises these values externally. Do not use the string `Razor-Crest` or version `2.0.0` as a substitute for capability negotiation.
 

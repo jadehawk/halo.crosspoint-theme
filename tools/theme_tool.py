@@ -30,8 +30,8 @@ MAX_PACKAGE_BYTES = 2 * 1024 * 1024
 MAX_FILES = 64
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
-ASSET_ROLES = {"header_emblem", "home_hero", "home_footer", "boot_art", "sleep_art", "sleep_emblem"}
-REGIONS = {"header", "home", "boot", "sleep", "hints"}
+ASSET_ROLES = {"header_emblem", "home_hero", "home_footer", "screen_art", "boot_art", "sleep_art", "sleep_emblem"}
+REGIONS = {"header", "home", "boot", "sleep", "hints", "screen"}
 SOURCES = {
     "screen_title", "date", "device_name", "book_title", "book_author",
     "progress_percent", "tagline", "loading_percent"
@@ -537,6 +537,16 @@ def validate(root: Path) -> dict:
             required_capabilities.add("theme.images.v1")
         if any(regions.values()):
             required_capabilities.add("theme.composition.v1")
+        if "screen" in regions and regions["screen"]:
+            require(len(regions["screen"]) == 1, "screen decoration requires one bitmap")
+            screen = regions["screen"][0]
+            require(screen.get("op") == "bitmap" and screen.get("paint") == "ink-only" and
+                    screen.get("asset") == "screen_art" and
+                    1 <= screen.get("max_height", 0) <= 128,
+                    "invalid screen decoration: must use bounded ink-only bitmap")
+            required_capabilities.add("theme.screen-decoration.v1")
+        require(bool(regions.get("screen")) == ("theme.screen-decoration.v1" in entry["requires"]),
+                "screen decoration capability must match screen region")
         if any(op.get("op") == "book-card" and op.get("variant") == "cover"
                for ops in regions.values() for op in ops):
             required_capabilities.add("theme.book-cover.v1")

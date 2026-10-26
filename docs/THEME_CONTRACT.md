@@ -87,7 +87,26 @@ The **exact manifest fields** are `kind`, `name`, `title`, `description`, `autho
 | `theme.fonts.v1` | Four optional SD UI font roles with stock-font restoration |
 | `theme.settings-navigation.v1` | Theme-preferred Settings list/tab presentation, subject to manual override |
 | `theme.book-cover.v1` | Opt-in native Home thumbnail card with saved progress when available (development primitive; requires firmware support) |
-| `theme.menu-decoration.v1` | Opt-in Home menu double outlines and validated Peanuts-style footer art drawn above button hints |
+| `theme.menu-decoration.v1` | Opt-in Home menu double outlines and decorative footer art drawn above button hints |
+| `theme.screen-decoration.v1` | Reusable non-reading screen decoration within confirmed unused layout space; one declared, one-bit ink-only bitmap, maximum 128px tall |
+
+A minimal, firmware-agnostic declaration looks like:
+
+```json
+{
+  "assets": {"screen_art": "themes/example/assets/screen-art.cpb"},
+  "regions": {
+    "screen": [{
+      "op": "bitmap", "asset": "screen_art", "anchor": "bottom",
+      "fit": "contain", "paint": "ink-only",
+      "max_width": 528, "max_height": 84
+    }]
+  }
+}
+```
+
+**Non-reading screen decoration (opt-in):** declare `theme.screen-decoration.v1` in the theme's `requires`, a scalar `assets.screen_art` CPB path, and exactly one `regions.screen` bitmap operation using `paint: "ink-only"`, `anchor: "bottom"`, and `max_height` from 1 through 128. The firmware renders that decoration *after* native content and only when a lower content band is provably empty. This is reused across short Settings, Library, and Plugin-list screens and, where QR codes leave room, File Transfer. Long/scrolled lists, the Reader, Home and sleep screens do not receive a forced overlay. Themes must keep a white center and avoid fake buttons; actual text, controls, focus, selection and input stay firmware-owned. Older firmware rejects the new capability. This is **not** an arbitrary full-page wallpaper behind text.
+
 
 These strings are recognized by **ThemePackRegistry** and advertised by compatible development firmware through `GET /api/status` → `pluginCapabilities` and native `{plugin_capabilities}` substitution. They remain a provisional community contract, not an upstream CrossPoint API. Catalogs should only claim runtime support after firmware advertises these values externally. Do not use the string `Razor-Crest` or version `2.0.0` as a substitute for capability negotiation.
 

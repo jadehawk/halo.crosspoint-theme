@@ -29,7 +29,7 @@ A complete **SD-loaded theme collection** for CrossPoint-based e-readers. This r
 4. Reboot, open **Settings → Display → UI Theme**, and select **HALO**. Classic remains the firmware fallback.
 5. To see HALO's rotating sleep gallery, select **Dark** or **Light** under Sleep Screen. A user-selected Custom or Cover sleep mode takes precedence.
 
-The repository ZIP and release archive are different: the **release asset** `halo-x3-0.1.6.crosspoint-theme.zip` or `halo-x4plus-0.1.6.crosspoint-theme.zip` contains the installable folder only. Extract it onto your computer or SD card; placing the ZIP itself under `/.crosspoint/themes/` does not install the collection. Automatic installation through the capability-aware Plugin Hub catalog requires compatible firmware; otherwise use manual installation.
+The repository ZIP and release archive are different: the **release asset** `halo-x3-0.1.7.crosspoint-theme.zip` or `halo-x4plus-0.1.7.crosspoint-theme.zip` contains the installable folder only. Extract it onto your computer or SD card; placing the ZIP itself under `/.crosspoint/themes/` does not install the collection. Automatic installation through the capability-aware Plugin Hub catalog requires compatible firmware; otherwise use manual installation.
 
 ## Repository layout
 
@@ -81,7 +81,7 @@ Create collections with one or more themes; customize bounded layout metrics, fo
 ```powershell
 python -m unittest discover -s tests -q
 python tools/theme_tool.py validate --root .
-python tools/theme_tool.py pack --root . --output dist/halo-x3-0.1.6.crosspoint-theme.zip
+python tools/theme_tool.py pack --root . --output dist/halo-x3-0.1.7.crosspoint-theme.zip
 python tools/theme_tool.py preview --input halo.crosspoint-theme/themes/halo/assets/home-hero.cpb --output dist/home-preview.png
 ```
 

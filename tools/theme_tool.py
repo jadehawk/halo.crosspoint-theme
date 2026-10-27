@@ -33,6 +33,7 @@ VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
 ASSET_ROLES = {"header_emblem", "home_hero", "home_footer", "screen_art", "screen_background_art", "boot_art", "sleep_art", "sleep_emblem", "usb_art"}
 ASSET_ROLES |= {role + "_touch" for role in tuple(ASSET_ROLES)}
 ASSET_ROLES.add("screen_touch_art")  # Existing optional footer role.
+ASSET_ROLES.add("usb_gray_art")  # Native 4-tone USB BMP, device-sized.
 REGIONS = {"header", "home", "boot", "sleep", "hints", "screen", "screen_background", "usb"}
 SOURCES = {
     "screen_title", "date", "device_name", "book_title", "book_author",
@@ -341,6 +342,30 @@ def load_theme_definition(root: Path, manifest: dict, theme_id: str) -> tuple[di
     return entry, read_json(located_file(root, entry["path"]))
 
 
+def verify_gray_bmp_file(data: bytes, reference: dict) -> None:
+    """Validate a device-sized 8bpp native four-tone BMP without third-party packages."""
+    require(54 <= len(data) <= 2 * 1024 * 1024, "USB grayscale BMP size exceeds budget")
+    require(data[:2] == b"BM", "USB grayscale image must be BMP")
+    offset = struct.unpack_from("<I", data, 10)[0]
+    header_size = struct.unpack_from("<I", data, 14)[0]
+    require(header_size == 40 and 54 < offset <= len(data), "unsupported USB BMP header")
+    width, height, planes, bpp, compression = struct.unpack_from("<iiHHI", data, 18)
+    require((width, height) == (reference["width"], reference["height"]), "USB BMP dimensions mismatch")
+    require(planes == 1 and bpp == 8 and compression == 0, "USB BMP must be uncompressed 8bpp")
+    row_bytes = (width + 3) & ~3
+    require(offset + row_bytes * height <= len(data), "USB BMP truncated pixel rows")
+    require(offset >= 54 + 4 * 4, "USB BMP missing grayscale palette")
+    palette = [tuple(data[54 + i * 4:54 + i * 4 + 3]) for i in range(4)]
+    require(palette == [(v, v, v) for v in (0, 85, 170, 255)],
+            "USB BMP palette must use the four native gray levels")
+    require(all(set(data[offset + y * row_bytes:offset + y * row_bytes + width]).issubset({0, 1, 2, 3})
+                for y in range(height)), "USB BMP has unsupported pixel palette indices")
+
+
+def verify_gray_bmp(path: Path, reference: dict) -> None:
+    verify_gray_bmp_file(path.read_bytes(), reference)
+
+
 def validate(root: Path) -> dict:
     """Validate an entire collection, including every included theme and shared asset."""
     root = resolve_theme_root(root)
@@ -550,6 +575,12 @@ def validate(root: Path) -> dict:
             require(len(paths) == 1 and isinstance(paths[0], str), "invalid bitmap path")
             for path in paths:
                 safe_path(path)
+                if role == "usb_gray_art":
+                    require(path.startswith("themes/" + tid + "/assets/") and path.endswith(".bmp") and
+                            path in files, "undeclared USB grayscale BMP: " + path)
+                    verify_gray_bmp(located_file(root, path), spec["reference"])
+                    resource_paths.add(path)
+                    continue
                 require(path.startswith("themes/" + tid + "/assets/") or
                         path.startswith("shared/assets/"),
                         "theme asset must belong to this theme or shared assets")
@@ -616,6 +647,10 @@ def validate(root: Path) -> dict:
                     not any(k in op for k in ("offset", "max_width", "max_height")),
                     "USB scene must use one full-frame opaque bitmap")
             required_capabilities.add("theme.usb-scene.v1")
+        require(("usb_gray_art" in assets) == ("theme.usb-grayscale.v1" in entry["requires"]),
+                "USB grayscale asset and capability must match")
+        require(not ("usb_gray_art" in assets) or bool(regions.get("usb")),
+                "USB grayscale requires the existing USB scene fallback")
         require(bool(regions.get("usb")) == ("theme.usb-scene.v1" in entry["requires"]) ==
                 ("usb_art" in assets), "USB scene, artwork and capability must match")
         if any(op.get("op") == "book-card" and op.get("variant") == "cover"

@@ -40,8 +40,13 @@ class VariantPackageTests(unittest.TestCase):
                     self.assertEqual(set(archive.namelist()),
                                      {PREFIX + item for item in manifest["files"]} |
                                      {n for n in archive.namelist() if "/sleep/" in n})
-                    self.assertEqual(len(manifest["files"]), 13)
+                    self.assertEqual(len(manifest["files"]), 14)
                     self.assertEqual(scene["assets"]["sleep_art"], "themes/halo/sleep")
+                    self.assertIn("theme.usb-grayscale.v1", manifest["themes"][0]["requires"])
+                    bmp = scene["assets"]["usb_gray_art"]
+                    self.assertIn(bmp, manifest["files"])
+                    self.assertEqual(bmp.endswith("-touch.bmp"), variant == "x4plus")
+                    theme_tool.verify_gray_bmp_file(archive.read(PREFIX + bmp), {"width": width, "height": height})
                     self.assertEqual(len([n for n in archive.namelist() if "/sleep/" in n]), 3)
                     for item in manifest["files"]:
                         if not item.endswith(".cpb"):

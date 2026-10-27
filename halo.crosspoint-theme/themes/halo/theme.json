@@ -102,7 +102,8 @@
     "boot_art": "themes/halo/assets/emblem-large.cpb",
     "sleep_art": "themes/halo/sleep",
     "sleep_emblem": "themes/halo/assets/sleep-emblem.cpb",
-    "usb_art": "themes/halo/assets/usb-connected.cpb"
+    "usb_art": "themes/halo/assets/usb-connected.cpb",
+    "usb_gray_art": "themes/halo/assets/usb-connected.bmp"
   },
   "regions": {
     "header": [

@@ -57,8 +57,14 @@ def packages(root: Path, output: Path) -> list[Path]:
         manifest["target_resolution"] = {"width": screen_width, "height": screen_height}
         scene = copy.deepcopy(scene_source)
         scene["reference"].update(width=screen_width, height=screen_height)
+        if profile == "x4plus":
+            base = ASSETS + "usb-connected.bmp"
+            touch = ASSETS + "usb-connected-touch.bmp"
+            scene["assets"]["usb_gray_art"] = touch
+            manifest["files"] = [touch if name == base else name for name in manifest["files"]]
         changed = {}
         if profile == "x4plus":
+            changed[ASSETS + "usb-connected-touch.bmp"] = (root / "source-art" / "usb-connected-touch.bmp").read_bytes()
             for name in FULL_WIDTH:
                 path = ASSETS + name
                 width, height, _ = theme_tool.decode_cpb((payload / path).read_bytes())
@@ -78,7 +84,7 @@ def packages(root: Path, output: Path) -> list[Path]:
                 info = zipfile.ZipInfo(PREFIX + name, (1980, 1, 1, 0, 0, 0))
                 info.compress_type = zipfile.ZIP_DEFLATED
                 info.external_attr = 0o100644 << 16
-                archive.writestr(info, changed.get(name, (payload / name).read_bytes()))
+                archive.writestr(info, changed[name] if name in changed else (payload / name).read_bytes())
         with zipfile.ZipFile(target) as archive:
             assert set(archive.namelist()) == {PREFIX + name for name in (manifest["files"] + sorted(changed.keys() - set(manifest["files"]))) }
         results.append(target)

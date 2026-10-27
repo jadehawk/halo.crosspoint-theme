@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.7 — Native grayscale USB illustration
+
+- Replace the solid-black USB connected presentation with four-level grayscale artwork on X3 and X4+.
+- Retain the original one-bit HALO USB bitmap as the fallback when the display does not support native grayscale.
+- Require `theme.usb-grayscale.v1` and continue publishing independent resolution-specific release ZIPs.
+
+
 ## 0.1.6 — Graphic-only USB Drive scene
 
 - Add the approved HALO soldier-and-USB illustration, painted before USB takes exclusive ownership of the SD card.

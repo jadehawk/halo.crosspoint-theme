@@ -39,11 +39,11 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(summary["name"], "halo")
         manifest = tool.read_json(PAYLOAD / "manifest.json")
         self.assertEqual(manifest["author"], "Jadehawk + IOSDEC")
-        self.assertEqual(manifest["version"], "0.1.6")
+        self.assertEqual(manifest["version"], "0.1.7")
         self.assertEqual(summary["themes"], 1)
-        self.assertEqual(summary["bitmaps"], 8)
+        self.assertEqual(summary["bitmaps"], 9)
         self.assertEqual(summary["fonts"], 4)
-        self.assertEqual(summary["files"], 16)
+        self.assertEqual(summary["files"], 17)
 
     def test_packaged_details_contract_is_required(self):
         root = self.copy_payload()
@@ -81,7 +81,7 @@ class PackageTests(unittest.TestCase):
             self.assertEqual(names, sorted("halo.crosspoint-theme/" + item for item in files + ["themes/halo/sleep/" + p.name for p in (PAYLOAD/"themes/halo/sleep").glob("*.cpb")]))
             released_manifest = json.loads(archive.read("halo.crosspoint-theme/manifest.json"))
             self.assertEqual(released_manifest["author"], "Jadehawk + IOSDEC")
-            self.assertEqual(released_manifest["version"], "0.1.6")
+            self.assertEqual(released_manifest["version"], "0.1.7")
             self.assertFalse(any("/tests/" in name or "/tools/" in name or "/docs/" in name for name in names))
 
     def test_required_capabilities_match_firmware_list(self):
@@ -179,8 +179,8 @@ class PackageTests(unittest.TestCase):
         original = (directory/"sleep-art-1.cpb").read_bytes()
         for i in range(4, 104):
             (directory/f"sleep-{i:05d}.cpb").write_bytes(original)
-        self.assertEqual(tool.validate(root)["bitmaps"], 108)
-        self.assertEqual(tool.validate(root)["files"], 116)
+        self.assertEqual(tool.validate(root)["bitmaps"], 109)
+        self.assertEqual(tool.validate(root)["files"], 117)
         # No sleep bitmap is enumerated in the JSON manifest.
         declared = tool.read_json(root/"manifest.json")["files"]
         self.assertFalse(any("/sleep/" in path for path in declared))

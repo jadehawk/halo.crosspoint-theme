@@ -39,7 +39,7 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(summary["name"], "halo")
         manifest = tool.read_json(PAYLOAD / "manifest.json")
         self.assertEqual(manifest["author"], "Jadehawk + IOSDEC")
-        self.assertEqual(manifest["version"], "0.1.4")
+        self.assertEqual(manifest["version"], "0.1.5")
         self.assertEqual(summary["themes"], 1)
         self.assertEqual(summary["bitmaps"], 7)
         self.assertEqual(summary["fonts"], 4)
@@ -67,7 +67,7 @@ class PackageTests(unittest.TestCase):
         listed = set(manifest["files"])
         actual = {file.relative_to(PAYLOAD).as_posix()
                   for file in PAYLOAD.rglob("*") if file.is_file()}
-        self.assertEqual(listed, actual)
+        self.assertEqual(listed | {p for p in actual if p.startswith("themes/halo/sleep/")}, actual)
         self.assertTrue(all(not p.endswith((".py", ".png", ".jsonc")) for p in listed))
 
     def test_archive_is_deterministic_and_install_only(self):
@@ -78,10 +78,10 @@ class PackageTests(unittest.TestCase):
         with zipfile.ZipFile(one) as archive:
             names = archive.namelist()
             files = tool.read_json(PAYLOAD / "manifest.json")["files"]
-            self.assertEqual(names, sorted("halo.crosspoint-theme/" + item for item in files))
+            self.assertEqual(names, sorted("halo.crosspoint-theme/" + item for item in files + ["themes/halo/sleep/" + p.name for p in (PAYLOAD/"themes/halo/sleep").glob("*.cpb")]))
             released_manifest = json.loads(archive.read("halo.crosspoint-theme/manifest.json"))
             self.assertEqual(released_manifest["author"], "Jadehawk + IOSDEC")
-            self.assertEqual(released_manifest["version"], "0.1.4")
+            self.assertEqual(released_manifest["version"], "0.1.5")
             self.assertFalse(any("/tests/" in name or "/tools/" in name or "/docs/" in name for name in names))
 
     def test_required_capabilities_match_firmware_list(self):
@@ -152,6 +152,88 @@ class PackageTests(unittest.TestCase):
         self.update_json(root, "themes/halo/theme.json",
                          lambda scene: scene["regions"]["screen"][0].update(paint="opaque"))
         with self.assertRaisesRegex(tool.ThemeError, "invalid screen decoration"):
+            tool.validate(root)
+
+    def test_optional_touch_footer_variants_require_base_decoration(self):
+        root = self.copy_payload()
+        def add_touch(scene):
+            scene["assets"]["screen_touch_art"] = scene["assets"]["home_hero"]
+        self.update_json(root, "themes/halo/theme.json", add_touch)
+        with self.assertRaisesRegex(tool.ThemeError, "touch screen footer requires"):
+            tool.validate(root)
+
+        def add_base(scene):
+            scene["assets"]["screen_art"] = scene["assets"]["home_hero"]
+            scene["regions"]["screen"] = [{
+                "op": "bitmap", "asset": "screen_art", "anchor": "bottom",
+                "paint": "ink-only", "fit": "contain", "max_height": 84
+            }]
+        self.update_json(root, "themes/halo/theme.json", add_base)
+        self.update_json(root, "manifest.json",
+                         lambda m: m["themes"][0]["requires"].append("theme.screen-decoration.v1"))
+        self.assertEqual(tool.validate(root)["themes"], 1)
+
+    def test_sleep_gallery_discovers_many_files_without_json_arrays(self):
+        root = self.copy_payload()
+        directory = root/"themes/halo/sleep"
+        original = (directory/"sleep-art-1.cpb").read_bytes()
+        for i in range(4, 104):
+            (directory/f"sleep-{i:05d}.cpb").write_bytes(original)
+        self.assertEqual(tool.validate(root)["bitmaps"], 107)
+        self.assertEqual(tool.validate(root)["files"], 115)
+        # No sleep bitmap is enumerated in the JSON manifest.
+        declared = tool.read_json(root/"manifest.json")["files"]
+        self.assertFalse(any("/sleep/" in path for path in declared))
+        self.update_json(root, "themes/halo/theme.json",
+                         lambda theme: theme["assets"].update(sleep_art="themes/halo/other"))
+        with self.assertRaisesRegex(tool.ThemeError, "sleep_art must name"):
+            tool.validate(root)
+
+    def test_touch_home_footer_requires_normal_footer(self):
+        root = self.copy_payload()
+        def add_touch(scene):
+            scene["styles"]["menu_double_outline"] = True
+            scene["styles"]["chamfer_row_cut"] = 10
+            scene["styles"]["menu_footer_touch_asset"] = "home_footer_touch"
+            scene["assets"]["home_footer_touch"] = scene["assets"]["home_hero"]
+        self.update_json(root, "themes/halo/theme.json", add_touch)
+        self.update_json(root, "manifest.json",
+                         lambda m: m["themes"][0]["requires"].append("theme.menu-decoration.v1"))
+        with self.assertRaisesRegex(tool.ThemeError, "touch footer requires"):
+            tool.validate(root)
+
+        def add_base(scene):
+            scene["styles"]["menu_footer_asset"] = "home_footer"
+            scene["assets"]["home_footer"] = scene["assets"]["home_hero"]
+        self.update_json(root, "themes/halo/theme.json", add_base)
+        self.assertEqual(tool.validate(root)["themes"], 1)
+
+    def test_header_back_style_requires_capability_and_enum(self):
+        root = self.copy_payload()
+        self.update_json(root, "themes/halo/theme.json",
+                         lambda scene: scene["styles"].update(header_back_style="both"))
+        with self.assertRaisesRegex(tool.ThemeError, "header back capability"):
+            tool.validate(root)
+        self.update_json(root, "manifest.json",
+                         lambda manifest: manifest["themes"][0]["requires"].append("theme.header-back.v1"))
+        self.assertEqual(tool.validate(root)["themes"], 1)
+        self.update_json(root, "themes/halo/theme.json",
+                         lambda scene: scene["styles"].update(header_back_style="unrecognized"))
+        with self.assertRaisesRegex(tool.ThemeError, "invalid header back style"):
+            tool.validate(root)
+
+    def test_touch_image_variant_requires_base_role(self):
+        root = self.copy_payload()
+        self.update_json(root, "themes/halo/theme.json",
+                         lambda scene: scene["assets"].update(screen_art_touch=scene["assets"]["home_hero"]))
+        with self.assertRaisesRegex(tool.ThemeError, "touch asset requires base"):
+            tool.validate(root)
+        self.update_json(root, "themes/halo/theme.json",
+                         lambda scene: scene["assets"].update(screen_art=scene["assets"]["home_hero"]))
+        self.assertEqual(tool.validate(root)["themes"], 1)
+        self.update_json(root, "themes/halo/theme.json",
+                         lambda scene: scene["assets"].update(screen_art_touch=[scene["assets"]["home_hero"]]))
+        with self.assertRaisesRegex(tool.ThemeError, "non-sleep theme assets must be scalar bitmap paths"):
             tool.validate(root)
 
     def test_full_screen_background_is_optional_and_capability_gated(self):
@@ -318,7 +400,7 @@ class PackageTests(unittest.TestCase):
     def test_wallpaper_generator_rejects_existing_destination(self):
         image_dir = self.work / "empty"
         image_dir.mkdir()
-        with self.assertRaisesRegex(tool.ThemeError, "between 1 and 8"):
+        with self.assertRaisesRegex(tool.ThemeError, "at least one image"):
             create(image_dir, self.work / "out", "pack", "Title", "Author", "0.1.0", 528, 792)
 
 

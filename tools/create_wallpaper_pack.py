@@ -26,8 +26,8 @@ def create(source: Path, output: Path, collection_id: str,
     if not source.is_dir():
         raise ThemeError("input must be a directory of images")
     files = sorted(p for p in source.iterdir() if p.is_file() and p.suffix.lower() in SUPPORTED)
-    if not 1 <= len(files) <= 8:
-        raise ThemeError("a wallpaper-only collection requires between 1 and 8 images")
+    if not files:
+        raise ThemeError("a wallpaper-only collection requires at least one image")
     destination = output / (collection_id + ".crosspoint-theme")
     if destination.exists():
         raise ThemeError("output folder already exists; choose a new output path")
@@ -37,7 +37,7 @@ def create(source: Path, output: Path, collection_id: str,
     bitmaps = []
     try:
         for index, image in enumerate(files, 1):
-            rel = f"themes/wallpapers/assets/sleep-{index:02d}.cpb"
+            rel = f"themes/wallpapers/sleep/sleep-{index:05d}.cpb"
             convert_image(image, destination / rel, width, height, "cover", 0.5, 0.5, "fs")
             bitmaps.append(rel)
         theme = {
@@ -53,7 +53,7 @@ def create(source: Path, output: Path, collection_id: str,
                 "corners": "square",
                 "chamfer_cut": 0
             },
-            "assets": {"sleep_art": bitmaps},
+            "assets": {"sleep_art": "themes/wallpapers/sleep"},
             "regions": {
                 "sleep": [
                     {"op": "fill", "color": "white"},
@@ -69,9 +69,9 @@ def create(source: Path, output: Path, collection_id: str,
             "themes": [{
                 "id": "wallpapers", "title": title, "path": "themes/wallpapers/theme.json",
                 "requires": ["theme.sd.v1", "theme.metrics.v1",
-                             "theme.images.v1", "theme.composition.v1"]
+                             "theme.images.v1", "theme.composition.v1", "theme.sleep-gallery.v1"]
             }],
-            "files": ["manifest.json", "README.md", "DETAILS.md", "themes/wallpapers/theme.json", *bitmaps]
+            "files": ["manifest.json", "README.md", "DETAILS.md", "themes/wallpapers/theme.json"]
         }
         theme_file = destination / "themes/wallpapers/theme.json"
         theme_file.parent.mkdir(parents=True, exist_ok=True)

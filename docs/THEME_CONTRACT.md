@@ -74,7 +74,7 @@ The collection ID, root folder name, manifest `name`, and theme IDs are stable i
 }
 ```
 
-The **exact manifest fields** are `kind`, `name`, `title`, `description`, `author`, `version`, `license`, `themes`, `files`. Unknown keys are rejected by the current host validator. Versions use `MAJOR.MINOR.PATCH`, without a `v` in the manifest. A release tag may use an initial `v`. Every runtime file must be listed, including `manifest.json`, the package README and the packaged rich `DETAILS.md`. All paths are relative to the payload root, never absolute or parent-traversing; symlinks are forbidden. The installer must not copy developer files or generated previews.
+The **exact manifest fields** are `kind`, `name`, `title`, `description`, `author`, `version`, `license`, `themes`, `files`. Unknown keys are rejected by the current host validator. Versions use `MAJOR.MINOR.PATCH`, without a `v` in the manifest. A release tag may use an initial `v`. Every core runtime file must be listed (the dedicated sleep gallery directory is separately scanned and verified), including `manifest.json`, the package README and the packaged rich `DETAILS.md`. All paths are relative to the payload root, never absolute or parent-traversing; symlinks are forbidden. The installer must not copy developer files or generated previews.
 
 ## Firmware capabilities currently recognized
 
@@ -116,8 +116,20 @@ after clearing the buffer; it never alters button hitboxes or reading pages.
 Native widgets may erase portions of the artwork as they draw opaque regions.
 Keep the center nearly empty and use this primarily for corner/edge details.
 This capability is an early hardware-testing primitive, not a guarantee that
-artwork shows through every widget. The separate lower-band decoration remains
-available for guaranteed visibility when there is empty space.
+artwork shows through every widget. At runtime, the firmware draws the full-height
+underlay **only when physically installed PSRAM is available**; X3/X4-class
+boards without PSRAM silently skip it for performance. The theme remains
+installable and the declared firmware capability remains independent of device
+memory. Do not list PSRAM or a firmware brand as a theme installation requirement.
+The separate lower-band decoration remains available without PSRAM wherever the
+native layout has confirmed spare space; Library position/status text and button
+hints are always excluded from that band.
+
+**Device-sized ZIP variants (new publisher contract):** A theme author may retain both X3 and larger-display images in the source repository, but should publish one installable ZIP per target resolution. Each variant must contain a `target_resolution: {width, height}` manifest field, the same stable `name` and theme ID, and only CPBs for that resolution. Use filenames `<name>-x3-<version>.crosspoint-theme.zip` (528×792) and `<name>-x4plus-<version>.crosspoint-theme.zip` (480×800), both attached to one GitHub Release. Both archives must unpack under `<name>.crosspoint-theme/`, regardless of ZIP filename. Cantina groups these into one theme selection and firmware chooses by measured panel size, validating ZIP digest and matching manifest resolution. Theme version and installed settings identity remain stable. Do not package the unused device's images. The old paired asset conventions are authoring-time inputs, not required for runtime packages.\n\n**Paired-resolution bitmap assets:** Every scene bitmap role may have an optional `<role>_touch` asset in `assets`, referencing a separately authored `.cpb`. For example `header_emblem` / `header_emblem_touch`, `home_hero` / `home_hero_touch`, `boot_art` / `boot_art_touch`, and `sleep_art` / `sleep_art_touch`. Firmware selects the alternate asset when a device exposes touch or uses the matching 480 × 800 portrait canvas, when that role's variant exists; otherwise it uses the base image. Back-arrow display remains touch-only. Keep native text, row actions, and interactive controls in firmware. All variants must be explicitly declared in `manifest.files`, pass normal CPB bounds/CRC validation, and retain the base asset. The higher-resolution images should be composed at their target canvas rather than enlarging the X3 package bitmap. This is a capability-based design, not a hard-coded firmware name requirement.
+
+**Touch Back icon style:** With the `theme.header-back.v1` capability, `styles.header_back_style` may be `arrow`, `emblem`, or `both`. `arrow` draws the firmware-owned arrow and suppresses the theme header emblem only on pushed touch screens; `emblem` keeps the historical emblem-only Back affordance; `both` draws the arrow first, then the emblem and shifted title without overlap. Button-device and root Home headers retain their original layout. All Back taps are routed through the existing firmware-owned input/hitbox; the theme does not implement actions. If this style is omitted, the historical emblem-only behavior remains.
+
+**Optional taller touch-panel footer art:** A theme already using `theme.menu-decoration.v1` may add `assets.home_footer_touch` and `styles.menu_footer_touch_asset: "home_footer_touch"` alongside the normal `home_footer`. Firmware uses the original 46px Home footer on button devices and selects the taller art (up to 112px, constrained by free space) on touch panels. Similarly, `theme.screen-decoration.v1` themes may declare `assets.screen_touch_art` alongside `screen_art`; touch panels select that bitmap in the same lower safe-band region (maximum 128px), while button devices retain `screen_art`. These are optional variants of existing capabilities, not firmware-specific requirements. The original footer asset remains mandatory whenever its touch variant is declared. Full-screen underlays are clipped above a reserved footer band when both are displayed; text and input remain native.
 
 **Non-reading screen decoration (opt-in):** declare `theme.screen-decoration.v1` in the theme's `requires`, a scalar `assets.screen_art` CPB path, and exactly one `regions.screen` bitmap operation using `paint: "ink-only"`, `anchor: "bottom"`, and `max_height` from 1 through 128. The firmware renders that decoration *after* native content and only when a lower content band is provably empty. This is reused across short Settings, Library, and Plugin-list screens and, where QR codes leave room, File Transfer. Long/scrolled lists, the Reader, Home and sleep screens do not receive a forced overlay. Themes must keep a white center and avoid fake buttons; actual text, controls, focus, selection and input stay firmware-owned. Older firmware rejects the new capability. This is **not** an arbitrary full-page wallpaper behind text.
 
@@ -144,7 +156,7 @@ Each `themes/<id>/theme.json` has exact required fields:
     "chamfer_cut": 0
   },
   "assets": {
-    "sleep_art": ["themes/my-style/assets/sleep-1.cpb"]
+    "sleep_art": "themes/my-style/sleep"
   },
   "regions": {
     "sleep": [
@@ -173,7 +185,7 @@ Optional:
 
 ### Assets and fonts
 
-Artwork is referenced by named roles: `header_emblem`, `home_hero`, `boot_art`, `sleep_art`, `sleep_emblem`. A role points to `themes/<id>/assets/<filename>.cpb` or `shared/assets/<filename>.cpb`; assets must be in `files`. Only `sleep_art` may be a list (currently 1–8 images). The renderer chooses one at random per **regular sleep rendering**; repeats can occur.
+Artwork is referenced by named roles: `header_emblem`, `home_hero`, `boot_art`, `sleep_art`, `sleep_emblem`. Standard image roles point to `themes/<id>/assets/<filename>.cpb` or `shared/assets/<filename>.cpb` and appear in `manifest.files`. The **sleep_art** role instead uses a dedicated directory: `"sleep_art": "themes/<id>/sleep"`. Put any number of verified 1-bit CPBs in that folder, bounded only by the installer’s 32 MiB ZIP / 64 MiB expanded budget. Sleep files must be direct children (no nested directories); filenames and CRCs are checked. They do **not** appear individually in `manifest.files`, which lists only core files. The firmware counts candidates by scanning the directory on SD and selects one without holding all filenames in RAM. Theme sleep rotation advertises `theme.sleep-gallery.v1` and is independent of Custom wallpaper pools. Device-specific ZIPs each ship one dedicated sleep directory. Consecutive duplicates are avoided within a loaded scene; after reboot a repeat is possible.
 
 When a theme needs custom UI typography, `fonts` can declare one UI **family with four raster-size variants**: `{"ui":{"small":"themes/<id>/fonts/ui-small.cpfont","regular":"themes/<id>/fonts/ui-regular.cpfont","large":"themes/<id>/fonts/ui-large.cpfont","display":"themes/<id>/fonts/display.cpfont"}}`. Each size retains its own glyph metrics, preserving the original typography across Home, Settings, Library, menus, and other UI screens. Variant-family activation uses a bounded font cache; the firmware may prewarm common UI glyphs and reclaim caches when network memory is tight. Developers must not assume glyph cache residency or force memory-intensive eager asset preloading. A single shared file (`{"ui":"themes/<id>/fonts/ui.cpfont"}`) remains supported for themes that intentionally use one raster size throughout. The legacy four-key form (`ui_small`, `ui_regular`, `ui_large`, `display`) remains compatible. All files must be listed in `manifest.files`, be v4 `.cpfont` assets within the theme's font directory, and require `theme.fonts.v1`. Both `fonts.ui` forms additionally require `theme.font-family.v1`, allowing older firmware to reject the extended format during discovery. Reader font families remain independent; theme deactivation safely restores stock UI fonts without deleting user-installed font files.
 
@@ -182,7 +194,7 @@ When a theme needs custom UI typography, `fonts` can declare one UI **family wit
 Font assets are **data**, not code. The validator and release workflow must reject a theme unless all of the following are true:
 
 1. The collection declares **exactly one supported font mode**: no `fonts` (use stock fonts), legacy `ui_small/ui_regular/ui_large/display`, a single `fonts.ui` string, or a `fonts.ui` object with **exactly** `small/regular/large/display`. Never mix the modes or add unknown roles.
-2. Every font lives under `themes/<id>/fonts/`, uses the exact `.cpfont` suffix, appears in `manifest.files`, is unique where the four-size family is requested, and is **64–204,800 bytes**. The entire pack remains subject to the existing 2 MiB / 64-file cap. Paths may not escape the collection, redirect through symlinks, or load external resources.
+2. Every font lives under `themes/<id>/fonts/`, uses the exact `.cpfont` suffix, appears in `manifest.files`, is unique where the four-size family is requested, and is **64–204,800 bytes**. The declared core files remain bounded to 64; sleep CPBs are separately bounded by the archive byte limits. Paths may not escape the collection, redirect through symlinks, or load external resources.
 3. Each font is a monochrome `.cpfont` **v4** with the correct eight-byte signature and 1–4 nonduplicate style IDs, including regular style 0. No 2-bit grayscale, kerning, or ligature tables in theme fonts. Every Unicode interval must be sorted, nonoverlapping, and map exactly onto the declared glyph count; glyph entries must have valid packed bitmap lengths and lie wholly inside the file's own style section.
 4. The modern `fonts.ui` modes require **both** `theme.fonts.v1` and `theme.font-family.v1`; the legacy four-role mode requires `theme.fonts.v1` only. Firmware compatibility is determined by capabilities, **never by a branded firmware name**. When a four-size UI family is declared, the four files must be distinct and their regular-style line heights must strictly ascend: `small < regular < large < display`.
 5. Theme fonts affect **UI chrome only**, never the book-reading font or user-selected reader font. Theme activation must revert to stock fonts on failure, and deactivation must not remove reader-owned fonts. Do not depend on theme-specific firmware patches or native executable plugins.
@@ -215,7 +227,7 @@ Scene operations are clipped to their region and preserve firmware-owned hitboxe
 
 **CPFONTS**: existing CrossPoint v4, 1-bit glyphs with bounded style tables and bitmap sections (max 200 KiB per file). These are UI-font resources, not book-font selections.
 
-Current host limits: 1–16 themes/collection, up to 64 files, ≤2 MiB payload, ≤1024-pixel dimensions, ≤128 KiB per CPB bitmap, ≤8 images per sleep gallery, ≤16 operations per region and ≤48 per theme. Current X3 firmware registry also limits discovery to 8 packs, 16 choices, 64 files/pack and 12 KiB per JSON file. Limits may change as the contract evolves; loaders must enforce their own constraints.
+Current host limits: 1–16 themes/collection, up to 64 declared core files, ≤64 MiB expanded payload, ≤1024-pixel dimensions, ≤128 KiB per CPB bitmap, arbitrary sleep directory length within byte budgets, ≤16 operations per region and ≤48 per theme. Current X3 firmware registry also limits discovery to 8 packs, 16 choices, 64 files/pack and 12 KiB per JSON file. Limits may change as the contract evolves; loaders must enforce their own constraints.
 
 ## Sleep-screen priority and known limitations
 
@@ -235,6 +247,14 @@ python -m unittest discover -s tests -q
 python tools/theme_tool.py pack --root . --output dist/my-themes-0.1.0.crosspoint-theme.zip
 ```
 
-A publisher must use the GitHub topic **`crosspoint-theme`**, maintain a stable non-draft, non-prerelease Release matching manifest `version`, and put only payload files in the verified `<name>-<version>.crosspoint-theme.zip`. Plugin Hub now discovers these for `community-themes.json`; stock firmware does not yet install them. See [copy/paste AI instructions](AI_AGENT_GUIDE.md) and [full publishing guide](https://github.com/crosspoint-reader/crosspoint-plugin-hub/blob/main/docs/BUILD_AND_PUBLISH_EXTENSIONS.md).
+A publisher uses the GitHub topic **`crosspoint-theme`** and one stable Release
+matching manifest version. Attach both verified resolution-specific ZIP assets,
+for example `<name>-x3-<version>.crosspoint-theme.zip` and
+`<name>-x4plus-<version>.crosspoint-theme.zip`. Both retain the same internal
+`<name>.crosspoint-theme/` directory, manifest name, theme IDs and version,
+but declare their own `target_resolution` and package only their own image
+set. The Cantina Store publishes one theme listing with resolution-scoped
+`variants[]`; compatible firmware downloads exactly one matching ZIP.
+
 
 See [author instructions](CREATE_THEMES.md), [wallpaper collections](WALLPAPER_PACKS.md), [firmware compatibility](SUPPORTED_FIRMWARE.md), and [catalog filtering](CATALOG_INTEGRATION.md).

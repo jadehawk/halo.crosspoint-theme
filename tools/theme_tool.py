@@ -26,11 +26,13 @@ FLAGS = 1  # bit 7 is leftmost pixel, bit=1 is black ink, trailing row bits zero
 MAX_WIDTH = 1024
 MAX_HEIGHT = 1024
 MAX_BITMAP_BYTES = 128 * 1024
-MAX_PACKAGE_BYTES = 2 * 1024 * 1024
+MAX_PACKAGE_BYTES = 64 * 1024 * 1024  # Mirrors the verified firmware ZIP expanded-byte budget.
 MAX_FILES = 64
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
 ASSET_ROLES = {"header_emblem", "home_hero", "home_footer", "screen_art", "screen_background_art", "boot_art", "sleep_art", "sleep_emblem"}
+ASSET_ROLES |= {role + "_touch" for role in tuple(ASSET_ROLES)}
+ASSET_ROLES.add("screen_touch_art")  # Existing optional footer role.
 REGIONS = {"header", "home", "boot", "sleep", "hints", "screen", "screen_background"}
 SOURCES = {
     "screen_title", "date", "device_name", "book_title", "book_author",
@@ -346,7 +348,12 @@ def validate(root: Path) -> dict:
     manifest = read_json(root / "manifest.json")
     expected = {"kind", "name", "title", "description", "author", "version",
                 "files", "themes", "license"}
-    exact_keys(manifest, expected, expected, "manifest")
+    exact_keys(manifest, expected | {"target_resolution"}, expected, "manifest")
+    if "target_resolution" in manifest:
+        dims = manifest["target_resolution"]
+        require(isinstance(dims, dict) and set(dims) == {"width", "height"} and
+                all(type(dims[k]) is int and 1 <= dims[k] <= MAX_HEIGHT for k in ("width", "height")),
+                "theme target_resolution must specify positive width and height")
     require(manifest["kind"] == "theme-pack", "manifest kind must be theme-pack")
     name = manifest["name"]
     require(isinstance(name, str) and ID_RE.fullmatch(name) is not None, "invalid theme ID")
@@ -434,7 +441,7 @@ def validate(root: Path) -> dict:
         exact_keys(styles, {"header_background", "header_foreground", "selection",
                             "row_separators", "corners", "chamfer_cut", "settings_navigation",
                             "chamfer_card_cut", "chamfer_row_cut", "chamfer_hint_cut",
-                             "menu_double_outline", "menu_footer_asset"},
+                             "menu_double_outline", "menu_footer_asset", "menu_footer_touch_asset", "header_back_style"},
                    {"header_background", "header_foreground", "selection",
                     "row_separators", "corners", "chamfer_cut"}, "styles")
         require(styles["header_background"] in PALETTE and
@@ -461,6 +468,15 @@ def validate(root: Path) -> dict:
         if "menu_footer_asset" in styles:
             require(isinstance(styles["menu_footer_asset"], str) and
                     styles["menu_footer_asset"] == "home_footer", "invalid menu footer role")
+        if "menu_footer_touch_asset" in styles:
+            require(styles.get("menu_footer_asset") == "home_footer" and
+                    styles["menu_footer_touch_asset"] == "home_footer_touch",
+                    "touch footer requires the normal footer asset")
+        if "header_back_style" in styles:
+            require(styles["header_back_style"] in ("arrow", "emblem", "both"),
+                    "invalid header back style")
+        require(("header_back_style" in styles) == ("theme.header-back.v1" in entry["requires"]),
+                "header back capability must match theme style")
         has_menu_decoration = bool(styles.get("menu_double_outline", False) or
                                    styles.get("menu_footer_asset"))
         require(has_menu_decoration == ("theme.menu-decoration.v1" in entry["requires"]),
@@ -511,11 +527,27 @@ def validate(root: Path) -> dict:
         require(isinstance(assets, dict) and set(assets).issubset(ASSET_ROLES),
                 "unsupported asset role")
         for role, val in assets.items():
+            if role == "sleep_art":
+                require(isinstance(val, str) and val == "themes/" + tid + "/sleep",
+                        "sleep_art must name the theme-local sleep directory")
+                sleep_dir = root / val
+                require(sleep_dir.is_dir(), "missing sleep image directory")
+                sleep_images = sorted(sleep_dir.iterdir())
+                require(sleep_images, "theme sleep directory must contain CPB files")
+                for image in sleep_images:
+                    rel = image.relative_to(root).as_posix()
+                    safe_path(rel)
+                    require(image.is_file() and image.suffix == ".cpb", "invalid theme sleep gallery entry")
+                    blob = image.read_bytes()
+                    require(len(blob) <= 8 * 1024 * 1024, "sleep bitmap exceeds individual file budget")
+                    decode_cpb(blob)
+                    size += len(blob)
+                    require(size <= MAX_PACKAGE_BYTES, "sleep gallery exceeds package byte budget")
+                    resource_paths.add(rel)
+                continue
             paths = val if isinstance(val, list) else [val]
-            require(paths and (role == "sleep_art" or not isinstance(val, list)),
-                    "only sleep_art can be a gallery")
-            require(len(paths) <= 8 and all(isinstance(p, str) for p in paths),
-                    "invalid asset list")
+            require(isinstance(val, str), "non-sleep theme assets must be scalar bitmap paths")
+            require(len(paths) == 1 and isinstance(paths[0], str), "invalid bitmap path")
             for path in paths:
                 safe_path(path)
                 require(path.startswith("themes/" + tid + "/assets/") or
@@ -527,6 +559,19 @@ def validate(root: Path) -> dict:
         if "menu_footer_asset" in styles:
             require(styles["menu_footer_asset"] in assets,
                     "menu footer image must be declared")
+        if "menu_footer_touch_asset" in styles:
+            require(styles["menu_footer_touch_asset"] in assets,
+                    "touch footer image must be declared")
+        for role in assets:
+            if role.endswith("_touch"):
+                require(role[:-6] in assets, "touch asset requires base asset")
+                require(role != "sleep_art_touch" and isinstance(assets[role], str),
+                        "device-sized sleep galleries must use the sleep directory")
+        if "screen_touch_art" in assets:
+            require(isinstance(assets["screen_touch_art"], str), "touch variant must be one bitmap path")
+        if "screen_touch_art" in assets:
+            require("screen_art" in assets and "theme.screen-decoration.v1" in entry["requires"],
+                    "touch screen footer requires ordinary screen decoration")
         regions = spec["regions"]
         require(isinstance(regions, dict) and set(regions).issubset(REGIONS),
                 "unsupported region")
@@ -535,6 +580,8 @@ def validate(root: Path) -> dict:
             required_capabilities.add("theme.metrics.v1")
         if assets:
             required_capabilities.add("theme.images.v1")
+        if "sleep_art" in assets:
+            required_capabilities.add("theme.sleep-gallery.v1")
         if any(regions.values()):
             required_capabilities.add("theme.composition.v1")
         if "screen" in regions and regions["screen"]:
@@ -575,7 +622,7 @@ def validate(root: Path) -> dict:
     require(set(files).issubset(allowed_resources),
             "manifest includes unreferenced files or unsupported resource")
     return {"name": name, "version": manifest["version"], "themes": len(themes),
-            "theme_ids": sorted(ids), "files": len(files), "bytes": size,
+            "theme_ids": sorted(ids), "files": len(files) + len(resource_paths - set(files)), "bytes": size,
             "bitmaps": len(resource_paths - font_paths), "fonts": len(font_paths), "regions": region_count,
             "primitives": primitive_count}
 
@@ -649,11 +696,19 @@ def pack_theme(root: Path, destination: Path):
     require(destination.suffix.lower() == ".zip", "output must have .zip extension")
     destination.parent.mkdir(parents=True, exist_ok=True)
     # Reproducible sorted ZIP; no developer files, timestamps, symlinks or parent traversal.
+    sleep_files = sorted(
+        path for entry in manifest["themes"]
+        for path in (
+            "themes/" + entry["id"] + "/sleep/" + image.name
+            for image in (root / "themes" / entry["id"] / "sleep").glob("*.cpb")
+        )
+    )
+    install_files = sorted(set(manifest["files"]) | set(sleep_files))
     with tempfile.NamedTemporaryFile(dir=destination.parent, suffix=".zip", delete=False) as temp:
         temporary = Path(temp.name)
     try:
         with zipfile.ZipFile(temporary, "w", compression=zipfile.ZIP_STORED) as archive:
-            for rel in sorted(manifest["files"]):
+            for rel in install_files:
                 info = zipfile.ZipInfo(root.name + "/" + rel, (1980, 1, 1, 0, 0, 0))
                 info.compress_type = zipfile.ZIP_STORED
                 info.external_attr = 0o100644 << 16

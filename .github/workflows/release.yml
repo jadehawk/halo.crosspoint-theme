@@ -1,4 +1,4 @@
-name: Release Theme Collection
+name: Release HALO device-specific themes
 
 on:
   push:
@@ -16,24 +16,24 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Validate version and manifest
+      - name: Validate version, artwork and both device packages
         run: |
           python - <<'PY'
           import json
           import os
           version = json.load(open("halo.crosspoint-theme/manifest.json", encoding="utf-8"))["version"]
-          tag = os.environ["GITHUB_REF_NAME"]
-          assert tag in (version, "v" + version), "Release tag must match manifest version"
+          assert os.environ["GITHUB_REF_NAME"] == "v" + version, "Release tag must match manifest version"
           PY
           python tools/theme_tool.py validate --root .
           python -m unittest discover -s tests -q
-      - name: Build deterministic install-only package
-        run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          python tools/theme_tool.py pack --root . --output "dist/halo-${VERSION}.crosspoint-theme.zip"
-      - name: Publish versioned release
+      - name: Build both native-resolution installable ZIPs
+        run: python tools/pack_theme_variants.py
+      - name: Publish both assets under one versioned release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          gh release create "$GITHUB_REF_NAME" "dist/halo-${VERSION}.crosspoint-theme.zip" --title "HALO Theme Collection" --notes-file CHANGELOG.md --verify-tag
+          gh release create "$GITHUB_REF_NAME" \
+            "dist/halo-x3-${VERSION}.crosspoint-theme.zip" \
+            "dist/halo-x4plus-${VERSION}.crosspoint-theme.zip" \
+            --title "HALO Theme Collection v${VERSION}" --notes-file CHANGELOG.md --verify-tag

@@ -28,7 +28,7 @@ A complete **SD-loaded theme collection** for CrossPoint-based e-readers. This r
 4. Reboot, open **Settings → Display → UI Theme**, and select **HALO**. Classic remains the firmware fallback.
 5. To see HALO's rotating sleep gallery, select **Dark** or **Light** under Sleep Screen. A user-selected Custom or Cover sleep mode takes precedence.
 
-The repository ZIP and release archive are different: the **release asset** `halo-0.1.4.crosspoint-theme.zip` contains the installable folder only. Extract it onto your computer or SD card; placing the ZIP itself under `/.crosspoint/themes/` does not install the collection. Automatic installation through the capability-aware Plugin Hub catalog requires compatible firmware; otherwise use manual installation.
+The repository ZIP and release archive are different: the **release asset** `halo-x3-0.1.5.crosspoint-theme.zip` or `halo-x4plus-0.1.5.crosspoint-theme.zip` contains the installable folder only. Extract it onto your computer or SD card; placing the ZIP itself under `/.crosspoint/themes/` does not install the collection. Automatic installation through the capability-aware Plugin Hub catalog requires compatible firmware; otherwise use manual installation.
 
 ## Repository layout
 
@@ -69,7 +69,7 @@ Create collections with one or more themes; customize bounded layout metrics, fo
 - Monochrome CPB bitmaps only; no animated wallpaper, arbitrary scripting, user-defined hitboxes or plugin behavior.
 - The active theme requires capability matching. Most community/stock firmware builds cannot load it today.
 - The built-in Classic theme remains the fallback; a theme **cannot replace firmware functionality**.
-- Sleep galleries currently have **up to eight images** per theme. They are selected at regular sleep entry in Dark/Light modes; **timed sleep refresh still reads `/.sleep` and `/sleep`**, not theme assets.
+- Sleep galleries currently have **up to 24 images** per theme. They are selected at regular sleep entry in Dark/Light modes; **timed sleep refresh still reads `/.sleep` and `/sleep`**, not theme assets.
 - Custom sleep-wallpaper modes use the normal SD pool, not the theme gallery.
 - The UI font loader has constrained sizes and bounded memory/cache behavior. Reader book fonts are not replaced.
 - Theme catalog installation requires firmware implementing the capability-aware extension catalog; not every firmware exposes that consumer yet.
@@ -80,7 +80,7 @@ Create collections with one or more themes; customize bounded layout metrics, fo
 ```powershell
 python -m unittest discover -s tests -q
 python tools/theme_tool.py validate --root .
-python tools/theme_tool.py pack --root . --output dist/halo-0.1.4.crosspoint-theme.zip
+python tools/theme_tool.py pack --root . --output dist/halo-x3-0.1.5.crosspoint-theme.zip
 python tools/theme_tool.py preview --input halo.crosspoint-theme/themes/halo/assets/home-hero.cpb --output dist/home-preview.png
 ```
 

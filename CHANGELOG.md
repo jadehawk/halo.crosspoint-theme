@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.5 — Device-specific theme release packages
+
+- Publish independent 528 × 792 X3 and 480 × 800 X4+ HALO theme ZIPs under one stable `halo` identity.
+- Keep the original X3 binary artwork and Chakra Petch fonts unchanged.
+- Prepare the X4+ Home hero and three rotating sleep scenes on native-size canvases using lossless centered crop/pad, without stretching the HALO artwork.
+- Declare each package's exact `target_resolution` for automatic selection by The Cantina Store and Razor-Crest.
+- Retain `Jadehawk + IOSDEC` author credit and the original HALO design attribution.
+
 ## 0.1.4 — Unified extension publishing contract (development only)
 
 - Package `DETAILS.md` within the declared theme payload, matching plugin publication.

@@ -100,11 +100,7 @@
     "header_emblem": "themes/halo/assets/header-emblem.cpb",
     "home_hero": "themes/halo/assets/home-hero.cpb",
     "boot_art": "themes/halo/assets/emblem-large.cpb",
-    "sleep_art": [
-      "themes/halo/assets/sleep-art-1.cpb",
-      "themes/halo/assets/sleep-art-2.cpb",
-      "themes/halo/assets/sleep-art-3.cpb"
-    ],
+    "sleep_art": "themes/halo/sleep",
     "sleep_emblem": "themes/halo/assets/sleep-emblem.cpb"
   },
   "regions": {

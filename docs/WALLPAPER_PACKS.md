@@ -20,7 +20,7 @@ title appears in the scrollable Wallpaper Collection picker; choosing
 **All wallpapers** retains the shared `/.sleep` and `/sleep` pool (and
 normal `/sleep.bmp` priority).
 
-A UI theme may optionally provide up to eight `sleep_art` CPB images. HALO
+A UI theme may optionally provide up to 24 `sleep_art` CPB images. HALO
 does this: each regular Dark/Light sleep transition chooses a random image
 and composes themed text/emblems. Such a gallery is **part of the selected UI
 theme** and falls back to its `classic` base, not another active theme.

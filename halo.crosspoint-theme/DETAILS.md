@@ -8,6 +8,7 @@ A monochrome HALO-inspired interface with custom e-ink artwork, Chakra Petch fon
 - UNSC-style headers, emblem artwork, and chamfered interface elements
 - Four Chakra Petch interface font slots
 - Three themed sleep images selected at random
+- Graphic-only HALO USB Drive screen, painted before SD handoff
 - Theme preferences for supported navigation layouts
 
 ## Compatibility

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.6 — Graphic-only USB Drive scene
+
+- Add the approved HALO soldier-and-USB illustration, painted before USB takes exclusive ownership of the SD card.
+- Add the `theme.usb-scene.v1` capability and publish device-sized X3/X4+ artwork.
+- Preserve existing HALO font, Home, and rotating sleep artwork.
+
 ## 0.1.5 — Device-specific theme release packages
 
 - Publish independent 528 × 792 X3 and 480 × 800 X4+ HALO theme ZIPs under one stable `halo` identity.

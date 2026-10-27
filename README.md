@@ -17,6 +17,7 @@ A complete **SD-loaded theme collection** for CrossPoint-based e-readers. This r
 - Four **Chakra Petch UI font slots** (8/10/12/18 display sizes, including available bold styles). Book-reading fonts remain independently configurable.
 - Theme-defined layout metrics, shared styling, and a **Settings navigation preference** (the shipped HALO pack prefers **List**, while a user can override it to Tabs).
 - Theme artwork stored as bounded **`.cpb`** files and UI fonts as **`.cpfont`**. No script or plugin execution.
+- A full-screen, text-free USB Drive illustration displayed while the computer owns the SD card (`theme.usb-scene.v1`); normal theme graphics return automatically after disconnect.
 
 ## Installation — compatible firmware required
 
@@ -28,7 +29,7 @@ A complete **SD-loaded theme collection** for CrossPoint-based e-readers. This r
 4. Reboot, open **Settings → Display → UI Theme**, and select **HALO**. Classic remains the firmware fallback.
 5. To see HALO's rotating sleep gallery, select **Dark** or **Light** under Sleep Screen. A user-selected Custom or Cover sleep mode takes precedence.
 
-The repository ZIP and release archive are different: the **release asset** `halo-x3-0.1.5.crosspoint-theme.zip` or `halo-x4plus-0.1.5.crosspoint-theme.zip` contains the installable folder only. Extract it onto your computer or SD card; placing the ZIP itself under `/.crosspoint/themes/` does not install the collection. Automatic installation through the capability-aware Plugin Hub catalog requires compatible firmware; otherwise use manual installation.
+The repository ZIP and release archive are different: the **release asset** `halo-x3-0.1.6.crosspoint-theme.zip` or `halo-x4plus-0.1.6.crosspoint-theme.zip` contains the installable folder only. Extract it onto your computer or SD card; placing the ZIP itself under `/.crosspoint/themes/` does not install the collection. Automatic installation through the capability-aware Plugin Hub catalog requires compatible firmware; otherwise use manual installation.
 
 ## Repository layout
 
@@ -80,7 +81,7 @@ Create collections with one or more themes; customize bounded layout metrics, fo
 ```powershell
 python -m unittest discover -s tests -q
 python tools/theme_tool.py validate --root .
-python tools/theme_tool.py pack --root . --output dist/halo-x3-0.1.5.crosspoint-theme.zip
+python tools/theme_tool.py pack --root . --output dist/halo-x3-0.1.6.crosspoint-theme.zip
 python tools/theme_tool.py preview --input halo.crosspoint-theme/themes/halo/assets/home-hero.cpb --output dist/home-preview.png
 ```
 

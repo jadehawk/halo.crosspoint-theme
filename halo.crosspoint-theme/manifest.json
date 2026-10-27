@@ -4,7 +4,7 @@
   "title": "HALO",
   "description": "SD-loaded HALO-inspired CrossPoint UI, with original artwork, Chakra Petch fonts, and three rotating sleep scenes.",
   "author": "Jadehawk + IOSDEC",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "license": "Unofficial HALO fan theme; third-party art and font rights remain with original owners. See attribution.",
   "themes": [
     {
@@ -19,7 +19,8 @@
         "theme.fonts.v1",
         "theme.font-family.v1",
         "theme.settings-navigation.v1",
-        "theme.sleep-gallery.v1"
+        "theme.sleep-gallery.v1",
+        "theme.usb-scene.v1"
       ]
     }
   ],
@@ -32,6 +33,7 @@
     "themes/halo/assets/header-emblem.cpb",
     "themes/halo/assets/emblem-large.cpb",
     "themes/halo/assets/sleep-emblem.cpb",
+    "themes/halo/assets/usb-connected.cpb",
     "themes/halo/fonts/ui-small.cpfont",
     "themes/halo/fonts/ui-regular.cpfont",
     "themes/halo/fonts/ui-large.cpfont",

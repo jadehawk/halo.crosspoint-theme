@@ -17,7 +17,7 @@ from pathlib import Path
 import theme_tool
 
 PROFILES = {"x3": (528, 792), "x4plus": (480, 800)}
-FULL_WIDTH = {"home-hero.cpb"}
+FULL_WIDTH = {"home-hero.cpb", "usb-connected.cpb"}
 PREFIX = "halo.crosspoint-theme/"
 ASSETS = "themes/halo/assets/"
 

@@ -30,10 +30,10 @@ MAX_PACKAGE_BYTES = 64 * 1024 * 1024  # Mirrors the verified firmware ZIP expand
 MAX_FILES = 64
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
-ASSET_ROLES = {"header_emblem", "home_hero", "home_footer", "screen_art", "screen_background_art", "boot_art", "sleep_art", "sleep_emblem"}
+ASSET_ROLES = {"header_emblem", "home_hero", "home_footer", "screen_art", "screen_background_art", "boot_art", "sleep_art", "sleep_emblem", "usb_art"}
 ASSET_ROLES |= {role + "_touch" for role in tuple(ASSET_ROLES)}
 ASSET_ROLES.add("screen_touch_art")  # Existing optional footer role.
-REGIONS = {"header", "home", "boot", "sleep", "hints", "screen", "screen_background"}
+REGIONS = {"header", "home", "boot", "sleep", "hints", "screen", "screen_background", "usb"}
 SOURCES = {
     "screen_title", "date", "device_name", "book_title", "book_author",
     "progress_percent", "tagline", "loading_percent"
@@ -605,6 +605,19 @@ def validate(root: Path) -> dict:
         require(bool(regions.get("screen_background")) ==
                 ("theme.screen-background.v1" in entry["requires"]),
                 "screen background capability must match background region")
+        # The USB screen is fully painted before the computer takes ownership
+        # of the SD filesystem; reject every operation that could depend on UI
+        # fonts, dynamic strings, or non-full-frame artwork.
+        if regions.get("usb"):
+            require(len(regions["usb"]) == 1, "USB scene requires exactly one image")
+            op = regions["usb"][0]
+            require(op.get("op") == "bitmap" and op.get("asset") == "usb_art" and
+                    op.get("paint", "opaque") == "opaque" and
+                    not any(k in op for k in ("offset", "max_width", "max_height")),
+                    "USB scene must use one full-frame opaque bitmap")
+            required_capabilities.add("theme.usb-scene.v1")
+        require(bool(regions.get("usb")) == ("theme.usb-scene.v1" in entry["requires"]) ==
+                ("usb_art" in assets), "USB scene, artwork and capability must match")
         if any(op.get("op") == "book-card" and op.get("variant") == "cover"
                for ops in regions.values() for op in ops):
             required_capabilities.add("theme.book-cover.v1")

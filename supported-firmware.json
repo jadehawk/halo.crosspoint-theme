@@ -20,7 +20,8 @@
         "theme.fonts.v1",
         "theme.font-family.v1",
         "theme.settings-navigation.v1",
-        "theme.sleep-gallery.v1"
+        "theme.sleep-gallery.v1",
+        "theme.usb-scene.v1"
       ],
       "notes": "SD theme committed to razor-crest development branch, X3 hardware-tested; not yet a tagged Razor-Crest firmware release."
     }

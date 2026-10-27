@@ -40,7 +40,7 @@ class VariantPackageTests(unittest.TestCase):
                     self.assertEqual(set(archive.namelist()),
                                      {PREFIX + item for item in manifest["files"]} |
                                      {n for n in archive.namelist() if "/sleep/" in n})
-                    self.assertEqual(len(manifest["files"]), 12)
+                    self.assertEqual(len(manifest["files"]), 13)
                     self.assertEqual(scene["assets"]["sleep_art"], "themes/halo/sleep")
                     self.assertEqual(len([n for n in archive.namelist() if "/sleep/" in n]), 3)
                     for item in manifest["files"]:

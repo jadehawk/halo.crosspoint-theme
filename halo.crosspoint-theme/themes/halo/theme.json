@@ -31,8 +31,6 @@
     "headerUnderlineSize": 2,
     "headerTitleAlign": 0,
     "headerBatterySide": 0,
-    "headerShowsClock": false,
-    "headerClockCentered": false,
     "menuRowHeight": 46,
     "menuSpacing": 0,
     "tabSpacing": 8,
@@ -92,6 +90,7 @@
     "corners": "chamfer",
     "chamfer_cut": 6,
     "settings_navigation": "list",
+    "header_back_style": "both",
     "chamfer_card_cut": 12,
     "chamfer_row_cut": 8,
     "chamfer_hint_cut": 6
@@ -112,46 +111,24 @@
         "color": "black"
       },
       {
-        "op": "rect",
+        "op": "line",
         "color": "white",
         "anchor": "bottom",
-        "width": 0,
-        "height": 10
-      },
-      {
-        "op": "rect",
-        "color": "black",
-        "anchor": "bottom",
-        "offset": [
-          0,
-          -5
-        ],
-        "width": 0,
-        "height": 2
-      },
-      {
-        "op": "rect",
-        "color": "black",
-        "anchor": "bottom-left",
-        "offset": [
-          14,
-          -3
-        ],
-        "width": 64,
-        "height": 4
+        "thickness": 1
       },
       {
         "op": "bitmap",
         "asset": "header_emblem",
         "color": "white",
         "paint": "ink-only",
+        "fit": "contain",
         "anchor": "left",
         "offset": [
           14,
-          -5
+          0
         ],
-        "max_width": 32,
-        "max_height": 32
+        "max_width": 22,
+        "max_height": 22
       },
       {
         "op": "rect",
@@ -159,10 +136,10 @@
         "anchor": "left",
         "offset": [
           56,
-          -5
+          0
         ],
         "width": 1,
-        "height": 24
+        "height": 22
       },
       {
         "op": "text",
@@ -172,7 +149,7 @@
         "anchor": "left",
         "offset": [
           67,
-          -5
+          0
         ],
         "tracking": 2,
         "max_width": 295

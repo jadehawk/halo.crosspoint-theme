@@ -39,11 +39,34 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(summary["name"], "halo")
         manifest = tool.read_json(PAYLOAD / "manifest.json")
         self.assertEqual(manifest["author"], "Jadehawk + IOSDEC")
-        self.assertEqual(manifest["version"], "0.1.7")
+        self.assertEqual(manifest["version"], "0.1.8")
         self.assertEqual(summary["themes"], 1)
         self.assertEqual(summary["bitmaps"], 9)
         self.assertEqual(summary["fonts"], 4)
         self.assertEqual(summary["files"], 17)
+
+    def test_header_emblem_clears_native_status_and_bottom_rule(self):
+        scene = tool.read_json(PAYLOAD / "themes/halo/theme.json")
+        header = scene["regions"]["header"]
+        self.assertEqual([op["op"] for op in header],
+                         ["fill", "line", "bitmap", "rect", "text"])
+        rule = header[1]
+        emblem = header[2]
+        self.assertEqual((rule["anchor"], rule["thickness"]), ("bottom", 1))
+        self.assertEqual((emblem["max_width"], emblem["max_height"]), (22, 22))
+        self.assertEqual(emblem["fit"], "contain")
+        self.assertEqual((emblem["anchor"], emblem["offset"]), ("left", [14, 0]))
+        self.assertEqual(header[3]["height"], 22)
+        self.assertEqual(scene["styles"]["header_back_style"], "both")
+        # The shortest X3 Home header must clear the 10px Lyra top inset
+        # plus the 20px firmware-owned status row without adding any height.
+        for header_bottom in (scene["metrics"]["homeTopPadding"],
+                              scene["metrics"]["topPadding"] + scene["metrics"]["headerHeight"]):
+            content_top = 10 + 20
+            content_height = header_bottom - content_top
+            emblem_y = content_top + (content_height - emblem["max_height"]) // 2
+            self.assertGreaterEqual(emblem_y, content_top)
+            self.assertLessEqual(emblem_y + emblem["max_height"], header_bottom - rule["thickness"])
 
     def test_packaged_details_contract_is_required(self):
         root = self.copy_payload()
@@ -81,7 +104,7 @@ class PackageTests(unittest.TestCase):
             self.assertEqual(names, sorted("halo.crosspoint-theme/" + item for item in files + ["themes/halo/sleep/" + p.name for p in (PAYLOAD/"themes/halo/sleep").glob("*.cpb")]))
             released_manifest = json.loads(archive.read("halo.crosspoint-theme/manifest.json"))
             self.assertEqual(released_manifest["author"], "Jadehawk + IOSDEC")
-            self.assertEqual(released_manifest["version"], "0.1.7")
+            self.assertEqual(released_manifest["version"], "0.1.8")
             self.assertFalse(any("/tests/" in name or "/tools/" in name or "/docs/" in name for name in names))
 
     def test_required_capabilities_match_firmware_list(self):
@@ -210,8 +233,8 @@ class PackageTests(unittest.TestCase):
 
     def test_header_back_style_requires_capability_and_enum(self):
         root = self.copy_payload()
-        self.update_json(root, "themes/halo/theme.json",
-                         lambda scene: scene["styles"].update(header_back_style="both"))
+        self.update_json(root, "manifest.json",
+                         lambda manifest: manifest["themes"][0]["requires"].remove("theme.header-back.v1"))
         with self.assertRaisesRegex(tool.ThemeError, "header back capability"):
             tool.validate(root)
         self.update_json(root, "manifest.json",

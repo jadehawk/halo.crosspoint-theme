@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.8 — Lyra-safe clock, battery and compact HALO header
+
+- Keep the clock top-left and battery top-right with firmware's Lyra-safe clearance.
+- Scale the HALO emblem to 22px, replace its overlapping bottom decoration with a one-pixel line, and preserve X3 titles.
+- Preserve the native touch Back arrow beside the emblem via `theme.header-back.v1`.
+
 ## 0.1.7 — Native grayscale USB illustration
 
 - Replace the solid-black USB connected presentation with four-level grayscale artwork on X3 and X4+.

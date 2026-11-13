@@ -466,7 +466,8 @@ def validate(root: Path) -> dict:
         exact_keys(styles, {"header_background", "header_foreground", "selection",
                             "row_separators", "corners", "chamfer_cut", "settings_navigation",
                             "chamfer_card_cut", "chamfer_row_cut", "chamfer_hint_cut",
-                             "menu_double_outline", "menu_footer_asset", "menu_footer_touch_asset", "header_back_style"},
+                             "menu_double_outline", "menu_footer_asset", "menu_footer_touch_asset", "header_back_style",
+                             "book_carousel"},
                    {"header_background", "header_foreground", "selection",
                     "row_separators", "corners", "chamfer_cut"}, "styles")
         require(styles["header_background"] in PALETTE and
@@ -474,6 +475,10 @@ def validate(root: Path) -> dict:
         require(styles["selection"] in ("invert", "underline", "pill", "triangle"),
                 "invalid selection")
         require(type(styles["row_separators"]) is bool, "row_separators must be boolean")
+        if "book_carousel" in styles:
+            require(type(styles["book_carousel"]) is bool, "book carousel must be boolean")
+            require(any(op.get("op") == "book-card" for op in spec["regions"].get("home", [])),
+                    "book carousel requires a Home book-card")
         require(styles["corners"] in ("square", "rounded", "chamfer"), "unknown corner shape")
         require(styles.get("settings_navigation", "list") in ("list", "tabs"),
                 "settings_navigation must be list or tabs")

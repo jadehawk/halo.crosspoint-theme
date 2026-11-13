@@ -90,6 +90,7 @@
     "corners": "chamfer",
     "chamfer_cut": 6,
     "settings_navigation": "list",
+    "book_carousel": true,
     "header_back_style": "both",
     "chamfer_card_cut": 12,
     "chamfer_row_cut": 8,

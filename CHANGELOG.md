@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.9 — Home Book Carousel support
+
+- Opt in to the firmware-owned Book Carousel for HALO's existing outlined Home book card.
+- Keep the current card layout and artwork unchanged; navigation is handled by compatible firmware.
+
 ## 0.1.8 — Lyra-safe clock, battery and compact HALO header
 
 - Keep the clock top-left and battery top-right with firmware's Lyra-safe clearance.

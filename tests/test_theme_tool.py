@@ -39,7 +39,9 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(summary["name"], "halo")
         manifest = tool.read_json(PAYLOAD / "manifest.json")
         self.assertEqual(manifest["author"], "Jadehawk + IOSDEC")
-        self.assertEqual(manifest["version"], "0.1.8")
+        self.assertEqual(manifest["version"], "0.1.9")
+        scene = tool.read_json(PAYLOAD / "themes/halo/theme.json")
+        self.assertTrue(scene["styles"]["book_carousel"])
         self.assertEqual(summary["themes"], 1)
         self.assertEqual(summary["bitmaps"], 9)
         self.assertEqual(summary["fonts"], 4)
@@ -104,7 +106,7 @@ class PackageTests(unittest.TestCase):
             self.assertEqual(names, sorted("halo.crosspoint-theme/" + item for item in files + ["themes/halo/sleep/" + p.name for p in (PAYLOAD/"themes/halo/sleep").glob("*.cpb")]))
             released_manifest = json.loads(archive.read("halo.crosspoint-theme/manifest.json"))
             self.assertEqual(released_manifest["author"], "Jadehawk + IOSDEC")
-            self.assertEqual(released_manifest["version"], "0.1.8")
+            self.assertEqual(released_manifest["version"], "0.1.9")
             self.assertFalse(any("/tests/" in name or "/tools/" in name or "/docs/" in name for name in names))
 
     def test_required_capabilities_match_firmware_list(self):

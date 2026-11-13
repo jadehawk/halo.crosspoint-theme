@@ -76,6 +76,43 @@ The collection ID, root folder name, manifest `name`, and theme IDs are stable i
 
 The **exact manifest fields** are `kind`, `name`, `title`, `description`, `author`, `version`, `license`, `themes`, `files`. Unknown keys are rejected by the current host validator. Versions use `MAJOR.MINOR.PATCH`, without a `v` in the manifest. A release tag may use an initial `v`. Every core runtime file must be listed (the dedicated sleep gallery directory is separately scanned and verified), including `manifest.json`, the package README and the packaged rich `DETAILS.md`. All paths are relative to the payload root, never absolute or parent-traversing; symlinks are forbidden. The installer must not copy developer files or generated previews.
 
+## Required files and rejection behavior — new theme ZIP installs
+
+**Three mandatory metadata files** must be inside the installable
+`<collection-id>.crosspoint-theme/` folder and each appear exactly once in
+`manifest.files`:
+
+- `manifest.json` — collection identity, version, metadata, theme definitions,
+  capability requirements and declared file allowlist
+- `README.md` — printable-ASCII plain text for the lightweight device UI,
+  at most 2 KiB
+- `DETAILS.md` — nonempty UTF-8 Markdown for rich Plugin Hub details,
+  at most 12 KiB (a repository-root copy alone does not count)
+
+Every declared theme definition, image and font must also exist inside the
+package. The author-side validator checks the metadata contents, file paths,
+assets and theme capabilities before packaging. **The firmware Plugin Hub ZIP
+installer rejects** missing metadata declarations, absent declared ZIP
+members, duplicate or unsafe paths, and undeclared ZIP members other than
+valid theme sleep-gallery images. It also checks release identity, target
+resolution and whether at least one declared theme's capabilities are
+supported. Missing `README.md` or `DETAILS.md` is an installation error; one
+file cannot substitute for the other.
+
+**Installation and discovery are distinct checks.** The ZIP installer does not
+perform all author-validator scene and resource checks: after installation,
+the firmware theme registry examines each theme and skips incompatible or
+invalid scenes. Manually copied SD themes use the older discovery path,
+which currently checks the manifest and README declaration but does not
+require `DETAILS.md`. This does **not** relax the contract for new Plugin Hub
+ZIP installations.
+
+A release ZIP must have the single `<collection-id>.crosspoint-theme/` payload
+root; files at the repository root do not satisfy the package contract. Run
+the author validator and inspect both device ZIPs **before tagging**. These
+checks guide authors; they do not, by themselves, block GitHub publication or
+guarantee inclusion in a community catalog.
+
 ## Firmware capabilities currently recognized
 
 | Capability | What it enables |
